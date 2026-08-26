@@ -137,6 +137,25 @@ See [.env.example](.env.example) for every variable with documentation. Secrets 
 2. **Tests** on Node 20 & 22 (in-memory MongoDB binary is cached between runs)
 3. **Docker build** + container smoke test against `/health`
 
+## Production deployment
+
+```bash
+node src/scripts/generate-secrets.js     # creates .env.production (gitignored)
+# edit .env.production: DOMAIN_NAME, Stripe keys, Mongo passwords
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+```
+
+The production stack includes:
+
+- **MongoDB replica set** (`rs0`) with keyfile auth — enables transactions & oplog backups
+- **Nginx** TLS termination (Let's Encrypt via the `tls` profile certbot service, HTTP→HTTPS redirect, HSTS)
+- **Hardened app container**: non-root user, no-new-privileges, healthcheck
+
+Stripe goes live by filling `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`
+(endpoint: `https://<domain>/api/payments/stripe/webhook`, events:
+`payment_intent.succeeded`, `payment_intent.payment_failed`).
+While empty, card orders use the deterministic simulated gateway.
+
 ## Security notes
 
 - Passwords hashed with bcrypt (cost 12); JWT in HttpOnly SameSite cookies; roles re-read from DB per request
