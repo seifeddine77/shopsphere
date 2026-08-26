@@ -83,4 +83,17 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { list, suggest, details, create, update, remove };
+/**
+ * GET /api/products/compare?ids=id1,id2
+ */
+async function compare(req, res, next) {
+  try {
+    const rawIds = req.query.ids ? String(req.query.ids).split(',').map((s) => s.trim()).filter(Boolean) : [];
+    const comparison = await productService.compareProducts(rawIds);
+    return sendSuccess(res, { data: comparison, message: 'Products comparison' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { list, suggest, details, create, update, remove, compare };

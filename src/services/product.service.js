@@ -72,6 +72,33 @@ async function buildFilter(query, { includeInactive = false } = {}) {
     filter.isFeatured = true;
   }
 
+  // Dynamic attribute filtering (supports ?attr_color=Red or ?color=Red or ?attr_ram=16GB)
+  const ignoredKeys = new Set([
+    'q', 'category', 'brand', 'minPrice', 'maxPrice', 'minRating',
+    'inStock', 'isFeatured', 'sort', 'page', 'limit',
+  ]);
+
+  const dynamicConditions = [];
+  for (const [key, rawVal] of Object.entries(query)) {
+    if (!ignoredKeys.has(key) && rawVal) {
+      const attrName = key.startsWith('attr_') ? key.replace('attr_', '') : key;
+      const valStr = String(rawVal).trim();
+      const escaped = escapeRegExp(valStr);
+      dynamicConditions.push({
+        $or: [
+          { [`specifications.${attrName}`]: new RegExp(`^${escaped}$`, 'i') },
+          { [`variants.attributes.${attrName}`]: new RegExp(`^${escaped}$`, 'i') },
+          { 'attributes.name': new RegExp(`^${escapeRegExp(attrName)}$`, 'i'), 'attributes.values': new RegExp(`^${escaped}$`, 'i') },
+        ],
+      });
+    }
+  }
+
+  if (dynamicConditions.length > 0) {
+    filter.$and = filter.$and || [];
+    filter.$and.push(...dynamicConditions);
+  }
+
   return filter;
 }
 
@@ -246,6 +273,47 @@ async function deleteProduct(id) {
   return product;
 }
 
+/** Compares up to 4 products by id or slug, assembling specifications & attributes */
+async function compareProducts(identifiers = []) {
+  if (!Array.isArray(identifiers) || identifiers.length === 0) {
+    return { products: [], specKeys: [], attributeKeys: [] };
+  }
+
+  const ids = identifiers.slice(0, 4);
+  const products = await Promise.all(
+    ids.map(async (id) => {
+      try {
+        return await getProduct(id);
+      } catch (_e) {
+        return null;
+      }
+    }),
+  );
+
+  const validProducts = products.filter(Boolean);
+  const specKeySet = new Set();
+  const attributeKeySet = new Set();
+
+  validProducts.forEach((p) => {
+    if (p.specifications) {
+      if (p.specifications instanceof Map) {
+        p.specifications.forEach((_val, key) => specKeySet.add(key));
+      } else if (typeof p.specifications === 'object') {
+        Object.keys(p.specifications).forEach((key) => specKeySet.add(key));
+      }
+    }
+    if (p.attributes && Array.isArray(p.attributes)) {
+      p.attributes.forEach((attr) => attributeKeySet.add(attr.name));
+    }
+  });
+
+  return {
+    products: validProducts,
+    specKeys: Array.from(specKeySet),
+    attributeKeys: Array.from(attributeKeySet),
+  };
+}
+
 module.exports = {
   listProducts,
   getSuggestions,
@@ -254,5 +322,6 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  compareProducts,
   slugify,
 };

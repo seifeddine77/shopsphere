@@ -6,7 +6,7 @@
   const images = product.images && product.images.length ? product.images : ['/images/placeholder.svg'];
 %>
 
-<div class="container py-4">
+<div class="container py-4" data-product-id="<%= product._id %>" data-product-name="<%= product.name %>" data-product-slug="<%= product.slug %>" data-product-price="<%= product.effectivePrice || product.price %>" data-product-image="<%= images[0] %>">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -77,6 +77,27 @@
             </p>
 
             <p class="text-body-secondary"><%= String(product.description).slice(0, 220) %><%= product.description.length > 220 ? '...' : '' %></p>
+
+            <%# --------------------------- Dynamic Variants ----------------------- %>
+            <% if (product.variants && product.variants.length > 0) { %>
+                <div class="product-variants mb-4 p-3 bg-body-tertiary rounded-3 border">
+                    <label class="form-label small fw-bold text-uppercase text-secondary-emphasis mb-2">Options &amp; Variations</label>
+                    <div class="d-flex flex-wrap gap-2" id="variant-selector-group" role="radiogroup" aria-label="Product options">
+                        <% product.variants.forEach((v, idx) => { %>
+                            <button type="button" 
+                                    class="btn btn-outline-primary btn-sm variant-pill js-variant-btn <%= idx === 0 ? 'active' : '' %>"
+                                    data-variant-id="<%= v._id %>"
+                                    data-variant-name="<%= v.name %>"
+                                    data-price="<%= v.effectivePrice || v.price %>"
+                                    data-stock="<%= v.stock %>"
+                                    data-sku="<%= v.sku || product.sku %>">
+                                <strong><%= v.name %></strong>
+                                <span class="ms-1 opacity-75">&bull; <%= formatPrice(v.effectivePrice || v.price) %></span>
+                            </button>
+                        <% }) %>
+                    </div>
+                </div>
+            <% } %>
 
             <%# --------------------------- Purchase row ---------------------------- %>
             <div class="purchase-row d-flex flex-wrap align-items-center gap-3 mt-4">
@@ -228,4 +249,56 @@
             </div>
         </section>
     <% } %>
+
+    <%- include('../partials/recently-viewed') %>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const variantBtns = document.querySelectorAll('.js-variant-btn');
+    if (!variantBtns.length) return;
+
+    const priceDisplay = document.querySelector('.price-current');
+    const addToCartBtn = document.querySelector('.js-add-to-cart');
+    const qtyInput = document.querySelector('.js-qty');
+    const stepper = document.querySelector('.qty-stepper');
+
+    variantBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            variantBtns.forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const price = parseFloat(btn.dataset.price);
+            const stock = parseInt(btn.dataset.stock, 10);
+            const variantId = btn.dataset.variantId;
+
+            if (priceDisplay && !isNaN(price)) {
+                priceDisplay.textContent = '$' + price.toFixed(2);
+            }
+
+            if (addToCartBtn) {
+                addToCartBtn.dataset.variantId = variantId;
+                addToCartBtn.dataset.stock = stock;
+                if (stock <= 0) {
+                    addToCartBtn.disabled = true;
+                    addToCartBtn.innerHTML = '<i class="bi bi-cart-x me-2"></i>Option out of stock';
+                } else {
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.innerHTML = '<i class="bi bi-cart-plus me-2"></i>Add to cart';
+                }
+            }
+
+            if (qtyInput) {
+                qtyInput.max = Math.max(stock, 1);
+                if (parseInt(qtyInput.value, 10) > stock) {
+                    qtyInput.value = Math.max(stock, 1);
+                }
+            }
+            if (stepper) {
+                stepper.dataset.stock = stock;
+            }
+        });
+    });
+});
+</script>
+

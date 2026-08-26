@@ -3,8 +3,17 @@
 
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-        <h1 class="h3 fw-bold mb-0">Order management</h1>
-        <span class="badge bg-primary-subtle text-primary-emphasis">Admin console</span>
+        <div>
+            <h1 class="h3 fw-bold mb-0">Order management</h1>
+            <p class="text-secondary-emphasis small mb-0">Manage customer orders and lifecycle statuses</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="/api/admin/orders/export<%= currentStatus ? `?status=${currentStatus}` : '' %>"
+               class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i> Export CSV
+            </a>
+            <span class="badge bg-primary-subtle text-primary-emphasis">Admin console</span>
+        </div>
     </div>
 
     <%# ------------------------------ Filters ------------------------------- %>
@@ -41,7 +50,12 @@
                         <% const allowed = transitions[order.orderStatus] || []; %>
                         <tr data-order-id="<%= order._id %>">
                             <td>
-                                <a href="/orders/<%= order._id %>" class="fw-semibold text-decoration-none"><%= order.orderNumber %></a><br>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="/orders/<%= order._id %>" class="fw-semibold text-decoration-none"><%= order.orderNumber %></a>
+                                    <a href="/api/orders/<%= order._id %>/invoice" target="_blank" rel="noopener" class="text-danger small" title="Download Invoice PDF">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                </div>
                                 <small class="text-secondary-emphasis"><%= formatDate(order.createdAt) %></small>
                             </td>
                             <td>

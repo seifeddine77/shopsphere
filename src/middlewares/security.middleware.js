@@ -17,7 +17,11 @@ function sameOriginGuard(req, res, next) {
 
   try {
     const originHost = new URL(origin).host;
-    if (originHost === req.headers.host) return next();
+    const reqHost = req.headers.host;
+    if (originHost === reqHost) return next();
+    if (originHost.replace('127.0.0.1', 'localhost') === reqHost.replace('127.0.0.1', 'localhost')) {
+      return next();
+    }
   } catch (_error) {
     // Malformed header falls through to rejection
   }

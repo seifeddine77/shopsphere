@@ -83,7 +83,7 @@ app.use(globalLimiter);
 
 /* ------------------------------- Static -------------------------------- */
 app.use(
-  express.static(path.join(__dirname, '../public'), {
+  express.static(path.join(__dirname, 'public'), {
     maxAge: config.isProduction ? '7d' : 0,
   }),
 );

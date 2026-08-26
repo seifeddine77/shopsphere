@@ -36,6 +36,12 @@
                         <span class="badge-counter <%= cartCount > 0 ? '' : 'd-none' %>" data-badge="cart"><%= cartCount %></span>
                     </a>
                 </li>
+                <li class="nav-item ms-lg-1">
+                    <button type="button" class="theme-toggle-btn js-theme-toggle" aria-label="Toggle dark/light theme" title="Toggle theme">
+                        <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
+                        <i class="bi bi-moon-stars-fill theme-icon-dark d-none" aria-hidden="true"></i>
+                    </button>
+                </li>
 
                 <% if (currentUser) { %>
                     <li class="nav-item dropdown ms-lg-2">

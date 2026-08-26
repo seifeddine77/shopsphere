@@ -20,12 +20,19 @@
                 Payment: <%= order.paymentMethod %> (<%= order.paymentStatus %>)
             </p>
         </div>
-        <span class="badge fs-6 px-3 py-2
-            <%= order.orderStatus === 'CANCELLED' ? 'bg-danger-subtle text-danger-emphasis'
-                 : order.orderStatus === 'DELIVERED' ? 'bg-success-subtle text-success-emphasis'
-                 : 'bg-primary-subtle text-primary-emphasis' %>">
-            <%= order.orderStatus %>
-        </span>
+        <div class="d-flex align-items-center gap-2">
+            <a href="/api/orders/<%= order._id %>/invoice<%= order.guestToken ? `?token=${order.guestToken}` : '' %>"
+               class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+               target="_blank" rel="noopener">
+                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download Invoice
+            </a>
+            <span class="badge fs-6 px-3 py-2
+                <%= order.orderStatus === 'CANCELLED' ? 'bg-danger-subtle text-danger-emphasis'
+                     : order.orderStatus === 'DELIVERED' ? 'bg-success-subtle text-success-emphasis'
+                     : 'bg-primary-subtle text-primary-emphasis' %>">
+                <%= order.orderStatus %>
+            </span>
+        </div>
     </div>
 
     <%# ------------------------------ Timeline ------------------------------ %>

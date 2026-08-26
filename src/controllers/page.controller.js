@@ -385,9 +385,32 @@ async function adminUsersPage(req, res, next) {
   }
 }
 
+/**
+ * GET /compare?ids=slug1,slug2
+ */
+async function comparePage(req, res, next) {
+  try {
+    const rawIds = req.query.ids ? String(req.query.ids).split(',').map((s) => s.trim()).filter(Boolean) : [];
+    const comparison = await productService.compareProducts(rawIds);
+
+    return res.render('products/compare', {
+      title: 'Compare Products',
+      description: 'Side-by-side product comparison',
+      stylesheets: ['/css/product.css'],
+      scripts: ['/js/catalog.js'],
+      products: comparison.products,
+      specKeys: comparison.specKeys,
+      attributeKeys: comparison.attributeKeys,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   catalog,
   productDetails,
+  comparePage,
   checkoutPage,
   ordersPage,
   orderDetailsPage,

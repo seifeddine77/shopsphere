@@ -71,7 +71,35 @@ async function createOrder(userId, payload) {
 
   try {
     /* 1. Load and validate the cart ------------------------------------ */
-    const cart = await cartService.getCartSummary(userId);
+    let cart;
+    if (userId) {
+      cart = await cartService.getCartSummary(userId);
+    } else {
+      if (!payload.items || !payload.items.length) {
+        throw unprocessable('Your cart is empty');
+      }
+      const productIds = payload.items.map((i) => i.productId);
+      const products = await Product.find({ _id: { $in: productIds } });
+      const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+      const items = payload.items.map((i) => {
+        const p = productMap.get(String(i.productId));
+        if (!p) throw unprocessable('A requested product was not found');
+        const unitPrice = p.effectivePrice != null ? p.effectivePrice : p.price;
+        return {
+          product: p,
+          quantity: i.quantity,
+          unitPrice,
+          lineTotal: round2(unitPrice * i.quantity),
+          available: p.isActive && p.stock >= i.quantity,
+          exceedsStock: p.stock < i.quantity,
+        };
+      });
+
+      const subtotal = round2(items.reduce((sum, item) => sum + item.lineTotal, 0));
+      cart = { items, subtotal, hasUnavailable: items.some((i) => !i.available) };
+    }
+
     if (!cart.items.length) throw unprocessable('Your cart is empty');
 
     const problems = cart.items
@@ -89,13 +117,13 @@ async function createOrder(userId, payload) {
     /* 2. Resolve the shipping address ----------------------------------- */
     let address = payload.shippingAddress;
 
-    if (payload.shippingAddressId) {
+    if (payload.shippingAddressId && userId) {
       const user = await User.findById(userId).select('addresses');
       const saved = (user.addresses || []).id(payload.shippingAddressId);
       if (!saved) throw notFound('Selected address not found');
       address = saved.toObject();
     }
-    if (payload.saveAddress && payload.shippingAddress) {
+    if (payload.saveAddress && payload.shippingAddress && userId) {
       await User.updateOne(
         { _id: userId },
         [
@@ -186,10 +214,21 @@ async function createOrder(userId, payload) {
       decremented.push({ productId: item.product._id, quantity: item.quantity });
     }
 
+    const isGuest = !userId;
+    const guestToken = isGuest ? crypto.randomBytes(20).toString('hex') : '';
+    const guestEmail = (payload.customer && payload.customer.email) || (payload.shippingAddress && payload.shippingAddress.email) || '';
+    const guestName = payload.customer ? `${payload.customer.firstName} ${payload.customer.lastName}`.trim() : (payload.shippingAddress ? payload.shippingAddress.fullName : '');
+    const guestPhone = (payload.customer && payload.customer.phone) || (payload.shippingAddress && payload.shippingAddress.phone) || '';
+
     /* 6. Persist order + payment ----------------------------------------- */
     const order = await Order.create({
       orderNumber,
-      user: userId,
+      user: userId || undefined,
+      isGuest,
+      guestEmail,
+      guestName,
+      guestPhone,
+      guestToken,
       items: cart.items.map((item) => ({
         product: item.product._id,
         name: item.product.name,
@@ -204,7 +243,7 @@ async function createOrder(userId, payload) {
       paymentMethod: payload.paymentMethod,
       paymentStatus: paidNow ? 'PAID' : 'PENDING',
       orderStatus: 'PENDING',
-      statusHistory: [{ status: 'PENDING', note: 'Order placed' }],
+      statusHistory: [{ status: 'PENDING', note: isGuest ? 'Guest order placed' : 'Order placed' }],
       subtotal,
       shippingCost,
       discount,
@@ -226,9 +265,11 @@ async function createOrder(userId, payload) {
     });
 
     /* 7. Empty the cart + notify ----------------------------------------- */
-    await Cart.findOneAndDelete({ user: userId });
+    if (userId) {
+      await Cart.findOneAndDelete({ user: userId });
+    }
 
-    logger.info(`Order created: ${order.orderNumber} (${total}) by user ${userId}`);
+    logger.info(`Order created: ${order.orderNumber} (${total}) by ${isGuest ? `guest ${guestEmail}` : `user ${userId}`}`);
 
     // Stripe path: hand back the client secret so the frontend can confirm
     // the PaymentIntent (transient - never persisted).
@@ -237,13 +278,23 @@ async function createOrder(userId, payload) {
     }
 
     setImmediate(() => {
-      User.findById(userId)
-        .select('firstName lastName email')
-        .then((buyer) => {
-          if (buyer) return emailService.sendOrderEmail(buyer, order, 'placed');
-          return null;
-        })
-        .catch((emailError) => logger.error(`Order confirmation email failed: ${emailError.message}`));
+      if (userId) {
+        User.findById(userId)
+          .select('firstName lastName email')
+          .then((buyer) => {
+            if (buyer) return emailService.sendOrderEmail(buyer, order, 'placed');
+            return null;
+          })
+          .catch((emailError) => logger.error(`Order confirmation email failed: ${emailError.message}`));
+      } else if (guestEmail) {
+        const guestBuyer = {
+          firstName: (payload.customer && payload.customer.firstName) || 'Valued',
+          lastName: (payload.customer && payload.customer.lastName) || 'Customer',
+          email: guestEmail,
+        };
+        emailService.sendOrderEmail(guestBuyer, order, 'placed')
+          .catch((emailError) => logger.error(`Guest confirmation email failed: ${emailError.message}`));
+      }
     });
 
     return order;
@@ -305,14 +356,36 @@ async function getUserOrders(userId, query = {}) {
 }
 
 /** Ownership enforced by returning 404 for other users' orders (no leaks) */
-async function getOrderForUser(orderId, requestingUser) {
+async function getOrderForUser(orderId, requestingUser, guestToken = null) {
   const order = await Order.findById(orderId).populate('user', 'firstName lastName email');
   if (!order) throw notFound('Order not found');
 
-  const isOwner = String(order.user._id) === String(requestingUser._id);
+  if (order.isGuest) {
+    if (guestToken && order.guestToken === guestToken) return order;
+    if (requestingUser && requestingUser.role === 'ADMIN') return order;
+    throw notFound('Order not found');
+  }
+
+  if (!requestingUser) {
+    throw notFound('Order not found');
+  }
+
+  const isOwner = order.user && String(order.user._id) === String(requestingUser._id);
   if (!isOwner && requestingUser.role !== 'ADMIN') {
     throw notFound('Order not found'); // deliberately not 403 - hides existence
   }
+  return order;
+}
+
+async function getGuestOrderByNumber(orderNumber, email) {
+  const order = await Order.findOne({
+    orderNumber: orderNumber.trim().toUpperCase(),
+    $or: [
+      { guestEmail: email.trim().toLowerCase() },
+      { 'shippingAddress.email': email.trim().toLowerCase() },
+    ],
+  });
+  if (!order) throw notFound('Order not found');
   return order;
 }
 
@@ -397,11 +470,18 @@ async function updateOrderStatus(orderId, payload) {
   logger.info(`Order ${order.orderNumber}: ${current} -> ${targetStatus}`);
 
   const emailEvent = STATUS_EMAIL_EVENTS[targetStatus];
-  if (emailEvent && order.user) {
-    setImmediate(() => {
-      emailService.sendOrderEmail(order.user, order, emailEvent)
-        .catch((emailError) => logger.error(`Order email failed: ${emailError.message}`));
-    });
+  if (emailEvent) {
+    const buyer = order.user || {
+      firstName: order.guestName || 'Valued Customer',
+      lastName: '',
+      email: order.guestEmail,
+    };
+    if (buyer.email) {
+      setImmediate(() => {
+        emailService.sendOrderEmail(buyer, order, emailEvent)
+          .catch((emailError) => logger.error(`Order email failed: ${emailError.message}`));
+      });
+    }
   }
 
   return order.populate([
@@ -414,6 +494,7 @@ module.exports = {
   getUserOrders,
   listOrders,
   getOrderForUser,
+  getGuestOrderByNumber,
   cancelOrder,
   updateOrderStatus,
   TRANSITIONS,

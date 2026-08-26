@@ -19,6 +19,7 @@ router.use(protect, adminOnly);
 router.get('/dashboard', adminController.dashboard);
 
 /* -------------------------------- Orders --------------------------------- */
+router.get('/orders/export', adminController.exportOrders);
 router.get('/orders', adminController.listOrders);
 router.put('/orders/:id/status', validate(updateOrderStatusSchema), adminController.updateOrderStatus);
 
@@ -56,4 +57,19 @@ router.put('/settings', validate(updateSettingsSchema), async (req, res, next) =
   } catch (error) { return next(error); }
 });
 
+/* ------------------------------ Attributes -------------------------------- */
+const attributeController = require('../controllers/attribute.controller');
+const {
+  attributeCreateSchema,
+  attributeUpdateSchema,
+} = require('../validators/admin.validator');
+
+router.get('/attributes', attributeController.list);
+router.get('/attributes/:id', attributeController.getById);
+router.post('/attributes', validate(attributeCreateSchema), attributeController.create);
+router.put('/attributes/:id', validate(attributeUpdateSchema), attributeController.update);
+router.delete('/attributes/:id', attributeController.remove);
+router.post('/attributes/:id/options', attributeController.addOption);
+
 module.exports = router;
+

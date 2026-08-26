@@ -17,17 +17,4 @@
       if (input.closest('form')) input.closest('form').submit();
     });
   });
-
-  /* Card quick actions -> real cart/wishlist APIs (shared helpers in main.js) */
-  document.addEventListener('click', (event) => {
-    const addCart = event.target.closest('.js-add-to-cart');
-    if (addCart && !addCart.disabled) {
-      window.app.addToCart(addCart.dataset.productId, 1);
-      return;
-    }
-    const addWish = event.target.closest('.js-add-to-wishlist');
-    if (addWish) {
-      window.app.addToWishlist(addWish.dataset.productId);
-    }
-  });
 })();

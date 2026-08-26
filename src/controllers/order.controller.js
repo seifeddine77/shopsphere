@@ -6,11 +6,13 @@ const { sendSuccess } = require('../utils/response');
  */
 async function create(req, res, next) {
   try {
-    const order = await orderService.createOrder(req.user._id, req.body);
+    const userId = req.user ? req.user._id : null;
+    const order = await orderService.createOrder(userId, req.body);
     return sendSuccess(res, {
       status: 201,
       data: {
         order: order.toJSON(),
+        guestToken: order.guestToken || undefined,
         // Present only when the Stripe gateway processed the order and the
         // frontend must confirm the PaymentIntent client-side.
         paymentClientSecret: order.paymentClientSecret || null,
@@ -39,12 +41,48 @@ async function list(req, res, next) {
 }
 
 /**
- * GET /api/orders/:id - one order (owner or admin only)
+ * GET /api/orders/:id - one order (owner, guest token, or admin only)
  */
 async function details(req, res, next) {
   try {
-    const order = await orderService.getOrderForUser(req.params.id, req.user);
+    const guestToken = req.query.token || req.headers['x-guest-token'];
+    const order = await orderService.getOrderForUser(req.params.id, req.user, guestToken);
     return sendSuccess(res, { data: { order: order.toJSON() }, message: 'Order retrieved' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * GET /api/orders/track?orderNumber=...&email=...
+ */
+async function track(req, res, next) {
+  try {
+    const { orderNumber, email } = req.query;
+    if (!orderNumber || !email) {
+      return res.status(400).json({ success: false, message: 'Order number and email are required' });
+    }
+    const order = await orderService.getGuestOrderByNumber(orderNumber, email);
+    return sendSuccess(res, { data: { order: order.toJSON() }, message: 'Order retrieved' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+const invoiceService = require('../services/invoice.service');
+
+/**
+ * GET /api/orders/:id/invoice - stream PDF invoice
+ */
+async function downloadInvoice(req, res, next) {
+  try {
+    const guestToken = req.query.token || req.headers['x-guest-token'];
+    const order = await orderService.getOrderForUser(req.params.id, req.user, guestToken);
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="invoice-${order.orderNumber}.pdf"`);
+    
+    invoiceService.generateInvoicePDF(order, res);
   } catch (error) {
     return next(error);
   }
@@ -62,4 +100,4 @@ async function cancel(req, res, next) {
   }
 }
 
-module.exports = { create, list, details, cancel };
+module.exports = { create, list, details, track, downloadInvoice, cancel };

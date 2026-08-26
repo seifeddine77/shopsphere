@@ -15,6 +15,7 @@ const { validate } = require('../middlewares/validation.middleware');
 
 router.get('/', productController.list);
 router.get('/suggest', productController.suggest);
+router.get('/compare', productController.compare);
 
 // Reviews are scoped to a product (identifier = id or slug)
 router.get('/:identifier/reviews', reviewController.listForProduct);

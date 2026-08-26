@@ -43,9 +43,14 @@ const orderSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
       index: true,
     },
+    isGuest: { type: Boolean, default: false, index: true },
+    guestEmail: { type: String, trim: true, lowercase: true, default: '' },
+    guestName: { type: String, trim: true, default: '' },
+    guestPhone: { type: String, trim: true, default: '' },
+    guestToken: { type: String, trim: true, index: true, default: '' },
     items: { type: [orderItemSchema], validate: (v) => v.length > 0 },
 
     shippingAddress: { type: shippingAddressSchema, required: true },

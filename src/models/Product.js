@@ -3,6 +3,29 @@ const { uniqueSlug } = require('../utils/slugify');
 
 const round2 = (value) => (value == null ? value : Math.round(value * 100) / 100);
 
+const productVariantSchema = new mongoose.Schema(
+  {
+    sku: { type: String, trim: true, uppercase: true },
+    name: { type: String, trim: true, required: true },
+    price: { type: Number, required: true, min: 0, set: round2 },
+    discountPrice: { type: Number, min: 0, default: null, set: round2 },
+    effectivePrice: { type: Number },
+    stock: { type: Number, default: 0, min: 0 },
+    images: { type: [String], default: [] },
+    attributes: { type: Map, of: String, default: {} },
+    isActive: { type: Boolean, default: true },
+  },
+  { _id: true },
+);
+
+productVariantSchema.pre('validate', function computeVariantPricing(next) {
+  if (this.discountPrice != null && this.price != null && this.discountPrice >= this.price) {
+    return next(new Error('Variant discount price must be lower than regular price'));
+  }
+  this.effectivePrice = this.discountPrice != null ? this.discountPrice : this.price;
+  return next();
+});
+
 const productSchema = new mongoose.Schema(
   {
     name: {
@@ -80,6 +103,14 @@ const productSchema = new mongoose.Schema(
     },
 
     specifications: { type: Map, of: String, default: {} },
+
+    // Dynamic attributes & variants support
+    variants: { type: [productVariantSchema], default: [] },
+    attributes: [{
+      name: { type: String, required: true },
+      label: { type: String, default: '' },
+      values: [{ type: String, required: true }],
+    }],
 
     // Denormalized review aggregates (recomputed by the Review service)
     rating: { type: Number, default: 0, min: 0, max: 5 },

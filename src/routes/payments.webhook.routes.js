@@ -6,7 +6,6 @@ const gateways = require('../services/gateways');
 const emailService = require('../services/email.service');
 const { Order } = require('../models/Order');
 const Payment = require('../models/Payment');
-const User = require('../models/User');
 
 /**
  * Stripe webhook - mounted BEFORE the JSON body parsers so the raw

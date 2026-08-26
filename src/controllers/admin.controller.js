@@ -135,9 +135,51 @@ async function updateOrderStatus(req, res, next) {
   }
 }
 
+/**
+ * GET /api/admin/orders/export - stream CSV of orders
+ */
+async function exportOrders(req, res, next) {
+  try {
+    const filter = {};
+    if (req.query.status) filter.orderStatus = req.query.status;
+
+    const { orders } = await orderService.listOrders(filter, { limit: 10000 });
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="orders-export.csv"');
+
+    const csvHeader = 'Order Number,Date,Customer Name,Customer Email,Items Count,Total,Payment Method,Payment Status,Order Status,Tracking Number\n';
+    res.write(csvHeader);
+
+    orders.forEach((order) => {
+      const name = order.user ? `"${order.user.firstName} ${order.user.lastName}"` : `"${order.guestName || ''}"`;
+      const email = order.user ? order.user.email : (order.guestEmail || '');
+      const itemsCount = (order.items || []).reduce((sum, item) => sum + item.quantity, 0);
+      const row = [
+        order.orderNumber,
+        `"${new Date(order.createdAt).toISOString()}"`,
+        name,
+        email,
+        itemsCount,
+        order.total.toFixed(2),
+        order.paymentMethod,
+        order.paymentStatus,
+        order.orderStatus,
+        order.trackingNumber || '',
+      ].join(',') + '\n';
+      res.write(row);
+    });
+
+    return res.end();
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   dashboard,
   listOrders,
+  exportOrders,
   updateOrderStatus,
   listUsers,
   setUserStatus,

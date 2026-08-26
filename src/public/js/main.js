@@ -95,7 +95,47 @@
     element.addEventListener('hidden.bs.toast', () => element.remove());
   };
 
+  /* ---------------------- Theme Switcher --------------------------------- */
+  function initThemeSwitcher() {
+    const toggleBtns = document.querySelectorAll('.js-theme-toggle');
+    if (!toggleBtns.length) return;
+
+    const getPreferredTheme = () => {
+      const stored = localStorage.getItem('shopsphere-theme');
+      if (stored) return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    };
+
+    const setTheme = (theme) => {
+      document.documentElement.setAttribute('data-bs-theme', theme);
+      localStorage.setItem('shopsphere-theme', theme);
+      updateIcons(theme);
+    };
+
+    const updateIcons = (theme) => {
+      document.querySelectorAll('.theme-icon-light').forEach((icon) => {
+        icon.classList.toggle('d-none', theme === 'dark');
+      });
+      document.querySelectorAll('.theme-icon-dark').forEach((icon) => {
+        icon.classList.toggle('d-none', theme !== 'dark');
+      });
+    };
+
+    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || getPreferredTheme();
+    updateIcons(currentTheme);
+
+    toggleBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const active = document.documentElement.getAttribute('data-bs-theme') || 'light';
+        const next = active === 'dark' ? 'light' : 'dark';
+        setTheme(next);
+        window.app.showToast(`Switched to ${next} mode`, 'info');
+      });
+    });
+  }
+
   initSearchSuggestions();
+  initThemeSwitcher();
 
   /* ------------------- Navbar badge helpers ------------------------------ */
 
@@ -145,6 +185,21 @@
       return false;
     }
   };
+
+  /* ---------------- Global Add-to-Cart / Wishlist Listener --------------- */
+  document.addEventListener('click', (event) => {
+    const addCart = event.target.closest('.js-add-to-cart');
+    if (addCart && !addCart.disabled) {
+      const qtyInput = document.querySelector('.js-qty');
+      const quantity = qtyInput ? Number.parseInt(qtyInput.value, 10) || 1 : 1;
+      window.app.addToCart(addCart.dataset.productId, quantity);
+      return;
+    }
+    const addWish = event.target.closest('.js-add-to-wishlist');
+    if (addWish && !addWish.disabled) {
+      window.app.addToWishlist(addWish.dataset.productId);
+    }
+  });
 
   /* ------------------------------ Newsletter ------------------------------ */
 
@@ -213,4 +268,88 @@
     }
     return payload;
   };
+
+  /* ------------------- Recently Viewed Products -------------------------- */
+  function initRecentlyViewed() {
+    const STORAGE_KEY = 'shopsphere_recent_products';
+    const grid = document.getElementById('recently-viewed-grid');
+    const section = document.getElementById('recently-viewed-section');
+    const clearBtn = document.getElementById('clear-recent-btn');
+
+    const getRecent = () => {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (_e) {
+        return [];
+      }
+    };
+
+    const saveRecent = (list) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 8)));
+      } catch (_e) {}
+    };
+
+    // If on a product page, record the current product
+    const productDetailEl = document.querySelector('[data-product-id][data-product-slug]');
+    let currentId = null;
+    if (productDetailEl) {
+      currentId = productDetailEl.dataset.productId;
+      const productData = {
+        id: currentId,
+        name: productDetailEl.dataset.productName,
+        slug: productDetailEl.dataset.productSlug,
+        price: productDetailEl.dataset.productPrice,
+        image: productDetailEl.dataset.productImage,
+      };
+      const list = getRecent().filter((item) => item.id !== productData.id);
+      list.unshift(productData);
+      saveRecent(list);
+    }
+
+    if (!grid || !section) return;
+
+    const items = getRecent();
+    const filtered = items.filter((p) => p.id !== currentId);
+
+    if (!filtered.length) {
+      section.classList.add('d-none');
+      return;
+    }
+
+    grid.innerHTML = filtered.slice(0, 4).map((p) => `
+      <div class="col">
+        <div class="card h-100 product-card shadow-sm border-0">
+          <a href="/products/${p.slug}" class="text-decoration-none">
+            <img src="${p.image || '/images/placeholder.svg'}" class="card-img-top" alt="${p.name}" style="height: 180px; object-fit: contain; padding: 1rem;">
+          </a>
+          <div class="card-body d-flex flex-column p-3">
+            <h6 class="card-title text-truncate mb-1"><a href="/products/${p.slug}" class="text-reset text-decoration-none">${p.name}</a></h6>
+            <div class="mt-auto d-flex align-items-center justify-content-between pt-2">
+              <span class="fw-bold text-primary">$${Number(p.price).toFixed(2)}</span>
+              <button type="button" class="btn btn-sm btn-outline-primary js-quick-add" data-id="${p.id}"><i class="bi bi-cart-plus"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    section.classList.remove('d-none');
+
+    grid.querySelectorAll('.js-quick-add').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        window.app.addToCart(btn.dataset.id, 1);
+      });
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        section.classList.add('d-none');
+        window.app.showToast('History cleared', 'info');
+      });
+    }
+  }
+
+  initRecentlyViewed();
 })();

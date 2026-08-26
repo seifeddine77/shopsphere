@@ -33,4 +33,33 @@ const userRoleSchema = Joi.object({
   }),
 });
 
-module.exports = { couponCreateSchema, userStatusSchema, userRoleSchema };
+const attributeOptionRule = Joi.object({
+  label: Joi.string().trim().required(),
+  value: Joi.string().trim().required(),
+  colorCode: Joi.string().trim().allow('').default(''),
+});
+
+const attributeCreateSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(80).required().messages({
+    'any.required': 'Attribute name is required',
+  }),
+  label: Joi.string().trim().max(100).allow('').default(''),
+  type: Joi.string().valid('TEXT', 'NUMBER', 'SELECT', 'COLOR', 'RADIO', 'CHECKBOX').default('SELECT'),
+  options: Joi.array().items(attributeOptionRule).default([]),
+  categories: Joi.array().items(Joi.string().hex().length(24)).default([]),
+  isFilterable: Joi.boolean().default(true),
+  isVariant: Joi.boolean().default(true),
+  order: Joi.number().integer().default(0),
+  isActive: Joi.boolean().default(true),
+});
+
+const attributeUpdateSchema = attributeCreateSchema.fork(['name'], (f) => f.optional()).min(1);
+
+module.exports = {
+  couponCreateSchema,
+  userStatusSchema,
+  userRoleSchema,
+  attributeCreateSchema,
+  attributeUpdateSchema,
+};
+

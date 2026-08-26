@@ -1,0 +1,113 @@
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/products">Shop</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Compare Products</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-1">Compare Products</h1>
+            <p class="text-secondary-emphasis mb-0">Side-by-side technical and price comparison</p>
+        </div>
+        <a href="/products" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to catalog</a>
+    </div>
+
+    <% if (!products || products.length === 0) { %>
+        <div class="empty-state my-5 text-center p-5 bg-body-tertiary rounded-4 border">
+            <i class="bi bi-sliders fs-1 text-muted mb-3 d-block"></i>
+            <h3 class="h5 fw-bold">No products selected for comparison</h3>
+            <p class="text-secondary-emphasis max-w-md mx-auto mb-4">Select up to 4 products from the catalog to compare their specifications side by side.</p>
+            <a href="/products" class="btn btn-primary px-4">Browse catalog</a>
+        </div>
+    <% } else { %>
+        <div class="table-responsive bg-body-tertiary rounded-4 border shadow-sm p-3">
+            <table class="table table-bordered align-middle text-center mb-0 bg-transparent">
+                <thead>
+                    <tr>
+                        <th style="width: 200px;" class="text-start bg-body text-secondary-emphasis fw-bold">Product</th>
+                        <% products.forEach((p) => { %>
+                            <th style="min-width: 240px;" class="bg-body">
+                                <div class="position-relative p-2">
+                                    <img src="<%= (p.images && p.images[0]) || '/images/placeholder.svg' %>" 
+                                         alt="<%= p.name %>" class="img-fluid rounded mb-2" style="height: 140px; object-fit: contain;">
+                                    <h6 class="fw-bold mb-1"><a href="/products/<%= p.slug %>" class="text-reset text-decoration-none"><%= p.name %></a></h6>
+                                    <span class="fs-5 fw-bold text-primary d-block mb-2"><%= formatPrice(p.effectivePrice || p.price) %></span>
+                                    <button type="button" class="btn btn-primary btn-sm w-100 js-add-to-cart" data-product-id="<%= p._id %>" data-stock="<%= p.stock %>">
+                                        <i class="bi bi-cart-plus me-1"></i>Add to cart
+                                    </button>
+                                </div>
+                            </th>
+                        <% }) %>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th class="text-start bg-body text-secondary-emphasis">Rating</th>
+                        <% products.forEach((p) => { %>
+                            <td>
+                                <%- include('../partials/star-rating', { rating: p.rating, count: p.reviewCount }) %>
+                            </td>
+                        <% }) %>
+                    </tr>
+                    <tr>
+                        <th class="text-start bg-body text-secondary-emphasis">Brand</th>
+                        <% products.forEach((p) => { %>
+                            <td><%= (p.brand && p.brand.name) || '-' %></td>
+                        <% }) %>
+                    </tr>
+                    <tr>
+                        <th class="text-start bg-body text-secondary-emphasis">Category</th>
+                        <% products.forEach((p) => { %>
+                            <td><%= (p.category && p.category.name) || '-' %></td>
+                        <% }) %>
+                    </tr>
+                    <tr>
+                        <th class="text-start bg-body text-secondary-emphasis">Stock Status</th>
+                        <% products.forEach((p) => { %>
+                            <td>
+                                <% if (p.stock > 0) { %>
+                                    <span class="badge bg-success-subtle text-success-emphasis">In stock (<%= p.stock %>)</span>
+                                <% } else { %>
+                                    <span class="badge bg-danger-subtle text-danger-emphasis">Out of stock</span>
+                                <% } %>
+                            </td>
+                        <% }) %>
+                    </tr>
+                    <tr>
+                        <th class="text-start bg-body text-secondary-emphasis">SKU</th>
+                        <% products.forEach((p) => { %>
+                            <td><code><%= p.sku %></code></td>
+                        <% }) %>
+                    </tr>
+
+                    <% if (specKeys && specKeys.length > 0) { %>
+                        <tr>
+                            <th colspan="<%= products.length + 1 %>" class="text-start bg-body-secondary fw-bold text-uppercase small letter-spacing py-2">Specifications</th>
+                        </tr>
+                        <% specKeys.forEach((key) => { %>
+                            <tr>
+                                <th class="text-start bg-body text-secondary-emphasis"><%= key %></th>
+                                <% products.forEach((p) => { %>
+                                    <td>
+                                        <% 
+                                          let val = '-';
+                                          if (p.specifications) {
+                                            if (p.specifications instanceof Map) val = p.specifications.get(key) || '-';
+                                            else val = p.specifications[key] || '-';
+                                          }
+                                        %>
+                                        <%= val %>
+                                    </td>
+                                <% }) %>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    <% } %>
+</div>
+

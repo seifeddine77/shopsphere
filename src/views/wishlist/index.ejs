@@ -2,37 +2,83 @@
     Expects: products[] (populated product cards) %>
 
 <div class="container py-4">
-    <h1 class="h3 fw-bold mb-4">Your wishlist</h1>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Your Wishlist</h1>
+            <p class="text-secondary-emphasis small mb-0"><%= products.length %> saved <%= products.length === 1 ? 'item' : 'items' %></p>
+        </div>
+        <a href="/products" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i>Continue Shopping</a>
+    </div>
 
     <% if (products.length === 0) { %>
-        <div class="empty-state">
-            <i class="bi bi-heartbreak empty-state-icon" aria-hidden="true"></i>
-            <p class="mb-1 fw-semibold">Your wishlist is empty</p>
-            <p class="small text-secondary-emphasis">Tap the heart on any product to save it here.</p>
-            <a href="/products" class="btn btn-primary mt-2 px-4">Discover products</a>
+        <div class="empty-state text-center p-5 bg-body-tertiary rounded-4 border">
+            <i class="bi bi-heartbreak empty-state-icon fs-1 text-muted mb-3 d-block" aria-hidden="true"></i>
+            <h2 class="h5 fw-bold mb-2">Your wishlist is empty</h2>
+            <p class="small text-secondary-emphasis max-w-md mx-auto mb-4">Tap the heart on any product to save it here and easily find it later.</p>
+            <a href="/products" class="btn btn-primary px-4">Discover products</a>
         </div>
     <% } else { %>
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
-            <% products.forEach((product) => { %>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4">
+            <% products.forEach((product) => { 
+                const hasDiscount = product.discountPrice != null;
+                const outOfStock = !product.stock || product.stock <= 0;
+                const imageUrl = (product.images && product.images[0]) || '/images/placeholder.svg';
+            %>
                 <div class="col wishlist-item" data-product-id="<%= product._id %>">
-                    <%- include('../partials/product-card', { product }) %>
-                    <div class="wishlist-actions d-flex gap-2 mt-2">
-                        <% if (product.stock > 0) { %>
-                            <button type="button" class="btn btn-primary btn-sm flex-grow-1 js-move-to-cart"
-                                    data-product-id="<%= product._id %>">
-                                <i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Move to cart
-                            </button>
-                        <% } else { %>
-                            <button type="button" class="btn btn-secondary btn-sm flex-grow-1" disabled aria-disabled="true">
-                                Out of stock
-                            </button>
-                        <% } %>
-                        <button type="button" class="btn btn-outline-danger btn-sm js-wishlist-remove"
+                    <article class="product-card h-100 position-relative shadow-sm rounded-3 border bg-body">
+                        <button type="button" class="btn btn-sm btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm border js-wishlist-remove z-2"
                                 data-product-id="<%= product._id %>"
-                                aria-label="Remove <%= product.name %> from wishlist">
-                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                title="Remove from wishlist"
+                                aria-label="Remove <%= product.name %> from wishlist"
+                                style="width: 2.25rem; height: 2.25rem; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-x-lg text-danger fs-6" aria-hidden="true"></i>
                         </button>
-                    </div>
+
+                        <div class="product-media position-relative">
+                            <a href="/products/<%= product.slug %>" tabindex="-1" aria-hidden="true">
+                                <img src="<%= imageUrl %>" alt="<%= product.name %>" loading="lazy">
+                            </a>
+                            <% if (hasDiscount) { %>
+                                <span class="badge badge-discount">-<%= discountPercent(product) %>%</span>
+                            <% } %>
+                            <% if (outOfStock) { %>
+                                <span class="badge badge-out">Out of stock</span>
+                            <% } %>
+                        </div>
+
+                        <div class="product-body p-3 d-flex flex-column flex-grow-1">
+                            <% if (product.brand && product.brand.name) { %>
+                                <p class="product-brand small text-muted text-uppercase mb-1"><%= product.brand.name %></p>
+                            <% } %>
+                            <h3 class="product-title h6 fw-semibold mb-2">
+                                <a href="/products/<%= product.slug %>" class="text-reset text-decoration-none text-truncate d-block"><%= product.name %></a>
+                            </h3>
+
+                            <div class="mb-2">
+                                <%- include('../partials/star-rating', { rating: product.rating, count: product.reviewCount }) %>
+                            </div>
+
+                            <div class="product-price mt-auto mb-3">
+                                <span class="price-current fs-5 fw-bold text-primary"><%= formatPrice(product.effectivePrice) %></span>
+                                <% if (hasDiscount) { %>
+                                    <s class="price-old small text-muted ms-2"><%= formatPrice(product.price) %></s>
+                                <% } %>
+                            </div>
+
+                            <div class="wishlist-actions mt-auto">
+                                <% if (product.stock > 0) { %>
+                                    <button type="button" class="btn btn-primary btn-sm w-100 js-move-to-cart"
+                                            data-product-id="<%= product._id %>">
+                                        <i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Move to cart
+                                    </button>
+                                <% } else { %>
+                                    <button type="button" class="btn btn-secondary btn-sm w-100" disabled aria-disabled="true">
+                                        Out of stock
+                                    </button>
+                                <% } %>
+                            </div>
+                        </div>
+                    </article>
                 </div>
             <% }) %>
         </div>

@@ -56,6 +56,26 @@ const productCreateSchema = Joi.object({
   specifications: Joi.object()
     .pattern(Joi.string(), Joi.string().allow(''))
     .default({}),
+  variants: Joi.array().items(
+    Joi.object({
+      _id: Joi.string().hex().length(24).optional(),
+      sku: Joi.string().trim().uppercase().allow('').optional(),
+      name: Joi.string().trim().min(1).max(100).required(),
+      price: Joi.number().min(0).max(10000000).precision(2).required(),
+      discountPrice: Joi.number().min(0).max(10000000).precision(2).allow(null).optional(),
+      stock: Joi.number().integer().min(0).max(1000000).default(0),
+      images: Joi.array().items(imageRule).max(10).default([]),
+      attributes: Joi.object().pattern(Joi.string(), Joi.string().allow('')).default({}),
+      isActive: Joi.boolean().default(true),
+    }),
+  ).default([]),
+  attributes: Joi.array().items(
+    Joi.object({
+      name: Joi.string().trim().required(),
+      label: Joi.string().trim().allow('').default(''),
+      values: Joi.array().items(Joi.string().trim().required()).min(1).required(),
+    }),
+  ).default([]),
   isFeatured: Joi.boolean().default(false),
   isActive: Joi.boolean().default(true),
 });

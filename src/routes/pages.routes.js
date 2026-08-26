@@ -15,6 +15,7 @@ router.get('/', homeController.index);
 
 /* ------------------------------ Catalog --------------------------------- */
 router.get('/products', optionalAuth, pageController.catalog);
+router.get('/compare', optionalAuth, pageController.comparePage);
 router.get('/products/:slug', optionalAuth, pageController.productDetails);
 
 /* ------------------------------- Admin ---------------------------------- */
@@ -107,7 +108,7 @@ async function wishlistPage(req, res, next) {
 
     return res.render('wishlist/index', {
       title: 'Your wishlist',
-      stylesheets: ['/css/cart.css'],
+      stylesheets: ['/css/product.css', '/css/cart.css'],
       scripts: ['/js/shopping.js'],
       products,
     });

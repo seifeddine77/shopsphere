@@ -37,7 +37,29 @@ const cardSchema = Joi.object({
     .messages({ 'string.pattern.base': 'CVC must be 3-4 digits' }),
 });
 
+const customerSchema = Joi.object({
+  email: Joi.string().trim().lowercase().email().required().messages({
+    'any.required': 'Email is required for guest checkout',
+    'string.email': 'Please provide a valid email address',
+  }),
+  firstName: Joi.string().trim().min(2).max(50).required().messages({
+    'any.required': 'First name is required',
+  }),
+  lastName: Joi.string().trim().min(2).max(50).required().messages({
+    'any.required': 'Last name is required',
+  }),
+  phone: Joi.string().trim().pattern(/^\+?[0-9\s\-().]{6,20}$/).optional().allow(''),
+});
+
+const guestItemSchema = Joi.object({
+  productId: Joi.string().hex().length(24).required(),
+  quantity: Joi.number().integer().min(1).max(99).required(),
+  variantId: Joi.string().allow(null, '').optional(),
+});
+
 const createOrderSchema = Joi.object({
+  customer: customerSchema.optional(),
+  items: Joi.array().items(guestItemSchema).min(1).optional(),
   shippingAddressId: Joi.string().hex().length(24),
   shippingAddress: shippingAddressSchema,
   saveAddress: Joi.boolean().default(false),

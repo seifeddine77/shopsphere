@@ -39,22 +39,6 @@
     qtyInput.addEventListener('change', clamp);
   }
 
-  /* --------------------- Add to cart / wishlist --------------------------- */
-  /* Shared helpers live in main.js (badges, toasts, login redirects).         */
-
-  document.querySelectorAll('.js-add-to-cart').forEach((button) => {
-    button.addEventListener('click', () => {
-      const quantity = qtyInput ? Number.parseInt(qtyInput.value, 10) || 1 : 1;
-      window.app.addToCart(button.dataset.productId, quantity);
-    });
-  });
-
-  document.querySelectorAll('.js-add-to-wishlist').forEach((button) => {
-    button.addEventListener('click', () => {
-      window.app.addToWishlist(button.dataset.productId);
-    });
-  });
-
   /* ------------------------------- Reviews -------------------------------- */
 
   const reviewForm = document.getElementById('review-form');

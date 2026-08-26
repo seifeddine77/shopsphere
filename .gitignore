@@ -16,6 +16,8 @@ npm-debug.log*
 
 # Uploads (user-generated content)
 public/uploads/
+src/public/uploads/
+!src/public/uploads/.gitkeep
 
 # Test coverage
 coverage/
