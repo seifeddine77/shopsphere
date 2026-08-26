@@ -1,0 +1,40 @@
+<%# ---------- Wishlist page (/wishlist) ----------
+    Expects: products[] (populated product cards) %>
+
+<div class="container py-4">
+    <h1 class="h3 fw-bold mb-4">Your wishlist</h1>
+
+    <% if (products.length === 0) { %>
+        <div class="empty-state">
+            <i class="bi bi-heartbreak empty-state-icon" aria-hidden="true"></i>
+            <p class="mb-1 fw-semibold">Your wishlist is empty</p>
+            <p class="small text-secondary-emphasis">Tap the heart on any product to save it here.</p>
+            <a href="/products" class="btn btn-primary mt-2 px-4">Discover products</a>
+        </div>
+    <% } else { %>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
+            <% products.forEach((product) => { %>
+                <div class="col wishlist-item" data-product-id="<%= product._id %>">
+                    <%- include('../partials/product-card', { product }) %>
+                    <div class="wishlist-actions d-flex gap-2 mt-2">
+                        <% if (product.stock > 0) { %>
+                            <button type="button" class="btn btn-primary btn-sm flex-grow-1 js-move-to-cart"
+                                    data-product-id="<%= product._id %>">
+                                <i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Move to cart
+                            </button>
+                        <% } else { %>
+                            <button type="button" class="btn btn-secondary btn-sm flex-grow-1" disabled aria-disabled="true">
+                                Out of stock
+                            </button>
+                        <% } %>
+                        <button type="button" class="btn btn-outline-danger btn-sm js-wishlist-remove"
+                                data-product-id="<%= product._id %>"
+                                aria-label="Remove <%= product.name %> from wishlist">
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</div>

@@ -1,0 +1,100 @@
+<%# ---------- Cart page (/cart) ----------
+    Expects: cart { items[{product, quantity, lineTotal, available}], itemCount, subtotal } %>
+
+<div class="container py-4">
+    <h1 class="h3 fw-bold mb-4">
+        Your cart
+        <% if (cart.itemCount > 0) { %>
+            <span class="text-secondary-emphasis fs-6 fw-normal">(<%= cart.itemCount %> item<%= cart.itemCount === 1 ? '' : 's' %>)</span>
+        <% } %>
+    </h1>
+
+    <% if (cart.items.length === 0) { %>
+        <div class="empty-state">
+            <i class="bi bi-cart-x empty-state-icon" aria-hidden="true"></i>
+            <p class="mb-1 fw-semibold">Your cart is empty</p>
+            <p class="small text-secondary-emphasis">Browse the catalog and find something you love.</p>
+            <a href="/products" class="btn btn-primary mt-2 px-4">Start shopping</a>
+        </div>
+    <% } else { %>
+        <div class="row g-4">
+            <%# ------------------------------ Items ------------------------------ %>
+            <div class="col-12 col-lg-8">
+                <div class="cart-list">
+                    <% cart.items.forEach((item) => { %>
+                        <div class="cart-row <%= item.available ? '' : 'cart-row-disabled' %>"
+                             data-product-id="<%= item.product._id %>">
+                            <a href="/products/<%= item.product.slug %>" class="cart-thumb" tabindex="-1" aria-hidden="true">
+                                <img src="<%= item.product.images && item.product.images[0] || '/images/placeholder.svg' %>"
+                                     alt="" loading="lazy">
+                            </a>
+
+                            <div class="cart-info">
+                                <a href="/products/<%= item.product.slug %>" class="cart-name"><%= item.product.name %></a>
+                                <p class="small text-secondary-emphasis mb-0">
+                                    <%= formatPrice(item.product.effectivePrice) %> / unit
+                                    <% if (!item.available) { %>
+                                        · <span class="text-danger">no longer available</span>
+                                    <% } else if (item.product.stock < 5) { %>
+                                        · only <%= item.product.stock %> left
+                                    <% } %>
+                                </p>
+                            </div>
+
+                            <div class="qty-stepper input-group qty-stepper-sm" data-stock="<%= Math.max(item.product.stock, item.quantity) %>">
+                                <button type="button" class="btn btn-outline-secondary js-cart-decrease"
+                                        data-product-id="<%= item.product._id %>" aria-label="Decrease quantity">&minus;</button>
+                                <label class="visually-hidden" for="qty-<%= item.product._id %>">Quantity</label>
+                                <input type="number" id="qty-<%= item.product._id %>"
+                                       class="form-control text-center js-cart-qty"
+                                       data-product-id="<%= item.product._id %>"
+                                       value="<%= item.quantity %>" min="1" max="99"
+                                       <%= item.available ? '' : 'disabled' %>>
+                                <button type="button" class="btn btn-outline-secondary js-cart-increase"
+                                        data-product-id="<%= item.product._id %>" aria-label="Increase quantity">+</button>
+                            </div>
+
+                            <p class="cart-line-total fw-bold mb-0"><%= formatPrice(item.lineTotal) %></p>
+
+                            <button type="button" class="btn btn-outline-danger btn-sm js-remove-item"
+                                    data-product-id="<%= item.product._id %>"
+                                    aria-label="Remove <%= item.product.name %> from cart">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <button type="button" class="btn btn-link btn-sm text-decoration-none px-0 mt-3 js-clear-cart text-danger">
+                    <i class="bi bi-x-circle me-1" aria-hidden="true"></i>Clear the whole cart
+                </button>
+            </div>
+
+            <%# ----------------------------- Summary ----------------------------- %>
+            <div class="col-12 col-lg-4">
+                <div class="cart-summary">
+                    <h2 class="h5 fw-bold mb-3">Summary</h2>
+                    <dl class="mb-4">
+                        <dt class="d-flex justify-content-between fw-normal">
+                            <span>Items</span><span><%= cart.itemCount %></span>
+                        </dt>
+                        <dt class="d-flex justify-content-between fw-normal">
+                            <span>Subtotal</span>
+                            <strong class="text-dark"><%= formatPrice(cart.subtotal) %></strong>
+                        </dt>
+                        <dt class="d-flex justify-content-between fw-normal">
+                            <span>Shipping</span>
+                            <span>calculated at checkout</span>
+                        </dt>
+                    </dl>
+
+                    <button type="button" class="btn btn-primary btn-lg w-100" disabled
+                            title="Checkout arrives in Phase 6" aria-disabled="true">
+                        Proceed to checkout
+                    </button>
+                    <a href="/products" class="btn btn-outline-secondary w-100 mt-2">Continue shopping</a>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>

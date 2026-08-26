@@ -1,0 +1,75 @@
+<nav class="navbar navbar-expand-lg sticky-top site-navbar" aria-label="Main navigation">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+            <i class="bi bi-bag-heart-fill brand-icon" aria-hidden="true"></i>
+            Shop<span class="brand-accent">Sphere</span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button"
+                data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <%# Search with live suggestions (endpoint: /api/products/suggest) %>
+            <form class="mx-lg-3 my-2 my-lg-0 flex-grow-1 position-relative" role="search"
+                  action="/products" method="get" aria-label="Product search" autocomplete="off">
+                <input class="form-control search-input" type="search" name="q"
+                       id="navbar-search" placeholder="Search products..."
+                       aria-label="Search products"
+                       aria-expanded="false" aria-controls="search-suggest">
+                <ul class="list-unstyled search-suggest d-none" id="search-suggest"
+                    role="region" aria-live="polite" aria-label="Search suggestions"></ul>
+            </form>
+
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="/wishlist" aria-label="Wishlist (<%= wishlistCount %> items)">
+                        <i class="bi bi-heart fs-5" aria-hidden="true"></i>
+                        <span class="badge-counter <%= wishlistCount > 0 ? '' : 'd-none' %>" data-badge="wishlist"><%= wishlistCount %></span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="/cart" aria-label="Shopping cart (<%= cartCount %> items)">
+                        <i class="bi bi-cart3 fs-5" aria-hidden="true"></i>
+                        <span class="badge-counter <%= cartCount > 0 ? '' : 'd-none' %>" data-badge="cart"><%= cartCount %></span>
+                    </a>
+                </li>
+
+                <% if (currentUser) { %>
+                    <li class="nav-item dropdown ms-lg-2">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#"
+                           id="userMenu" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="bi bi-person-circle fs-5" aria-hidden="true"></i>
+                            <span class="d-lg-inline"><%= currentUser.firstName %></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                            <% if (currentUser.role === 'ADMIN') { %>
+                                <li><h6 class="dropdown-header">Administration</h6></li>
+                                <li><a class="dropdown-item" href="/admin"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/admin/products"><i class="bi bi-box-seam me-2"></i>Products</a></li>
+                                <li><a class="dropdown-item" href="/admin/orders"><i class="bi bi-receipt me-2"></i>Orders</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                            <% } %>
+                            <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>My profile</a></li>
+                            <li><a class="dropdown-item" href="/orders"><i class="bi bi-box-seam me-2"></i>My orders</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-item text-danger" type="button" data-action="logout">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item"><a class="nav-link" href="/auth/login">Login</a></li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-primary btn-sm px-3" href="/auth/register">Register</a>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>

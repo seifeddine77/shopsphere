@@ -1,0 +1,13 @@
+<section class="container d-flex align-items-center justify-content-center error-page" aria-labelledby="error-heading">
+    <div class="text-center py-5">
+        <p class="display-1 fw-bold mb-0 error-code"><%= statusCode %></p>
+        <h1 id="error-heading" class="h4 fw-bold mb-3">
+            <%= statusCode === 404 ? 'Page not found' : 'Something went wrong' %>
+        </h1>
+        <p class="text-secondary-emphasis mb-4 mx-auto error-message"><%= errorMessage %></p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/" class="btn btn-primary px-4">Back to home</a>
+            <a href="/products" class="btn btn-outline-secondary px-4">Browse products</a>
+        </div>
+    </div>
+</section>

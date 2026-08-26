@@ -1,0 +1,156 @@
+<%# ---------- Checkout (/checkout) ----------
+    Expects: cart (summary), addresses[], shipping {flatRate, freeThreshold} %>
+
+<div class="container py-4" id="checkout-root"
+     data-flat-rate="<%= shipping.flatRate %>"
+     data-free-threshold="<%= shipping.freeThreshold %>">
+    <h1 class="h3 fw-bold mb-1">Checkout</h1>
+    <p class="text-secondary-emphasis small">
+        <%= cart.itemCount %> item<%= cart.itemCount === 1 ? '' : 's' %> ·
+        subtotal <strong><%= formatPrice(cart.subtotal) %></strong>
+    </p>
+
+    <%# ------------------------------ Stepper ------------------------------ %>
+    <ol class="checkout-steps list-unstyled d-flex gap-2 my-4" aria-label="Checkout progress">
+        <li class="step active" data-step-indicator="1"><span class="step-number">1</span> Address</li>
+        <li class="step" data-step-indicator="2"><span class="step-number">2</span> Payment</li>
+        <li class="step" data-step-indicator="3"><span class="step-number">3</span> Review</li>
+    </ol>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+
+            <%# ============================ STEP 1 ============================ %>
+            <section class="checkout-panel card-panel" data-panel="1" aria-label="Shipping address">
+                <h2 class="h5 fw-bold mb-3">Shipping address</h2>
+
+                <% if (addresses.length > 0) { %>
+                    <div class="address-grid mb-3">
+                        <% addresses.forEach((address, index) => { %>
+                            <label class="address-card">
+                                <input type="radio" name="savedAddress"
+                                       value="<%= address._id %>"
+                                       <%= index === 0 ? 'checked' : '' %>>
+                                <span class="d-block">
+                                    <strong><%= address.label || 'Address' %></strong><br>
+                                    <%= address.fullName %><br>
+                                    <%= address.street %>, <%= address.city %> <%= address.postalCode %><br>
+                                    <%= address.country %>
+                                </span>
+                            </label>
+                        <% }) %>
+                        <label class="address-card">
+                            <input type="radio" name="savedAddress" value="__new__">
+                            <span><strong>+ Use a new address</strong></span>
+                        </label>
+                    </div>
+                <% } %>
+
+                <form id="address-form" class="<%= addresses.length > 0 ? 'd-none' : '' %>" novalidate>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6"><label class="form-label" for="addr-name">Full name</label>
+                            <input class="form-control" id="addr-name" name="fullName" autocomplete="name" required></div>
+                        <div class="col-12 col-md-6"><label class="form-label" for="addr-phone">Phone</label>
+                            <input class="form-control" id="addr-phone" name="phone" autocomplete="tel" required></div>
+                        <div class="col-12"><label class="form-label" for="addr-street">Street address</label>
+                            <input class="form-control" id="addr-street" name="street" autocomplete="street-address" required></div>
+                        <div class="col-12 col-md-5"><label class="form-label" for="addr-city">City</label>
+                            <input class="form-control" id="addr-city" name="city" required></div>
+                        <div class="col-6 col-md-3"><label class="form-label" for="addr-state">State</label>
+                            <input class="form-control" id="addr-state" name="state"></div>
+                        <div class="col-6 col-md-4"><label class="form-label" for="addr-zip">Postal code</label>
+                            <input class="form-control" id="addr-zip" name="postalCode" required></div>
+                        <div class="col-12 col-md-8"><label class="form-label" for="addr-country">Country</label>
+                            <input class="form-control" id="addr-country" name="country" required></div>
+                    </div>
+                    <label class="mt-3 d-flex align-items-center gap-2 small">
+                        <input type="checkbox" id="save-address" checked> Save this address to my account
+                    </label>
+                </form>
+
+                <button type="button" class="btn btn-primary mt-3 js-next" data-goto="2">Continue to payment</button>
+            </section>
+
+            <%# ============================ STEP 2 ============================ %>
+            <section class="checkout-panel card-panel d-none" data-panel="2" aria-label="Payment method">
+                <h2 class="h5 fw-bold mb-3">Payment method</h2>
+
+                <label class="payment-option">
+                    <input type="radio" name="paymentMethod" value="COD" checked>
+                    <i class="bi bi-cash-stack fs-4 ms-1 me-2" aria-hidden="true"></i>
+                    <span><strong>Cash on delivery</strong><br><small class="text-secondary-emphasis">Pay when your order arrives</small></span>
+                </label>
+
+                <label class="payment-option">
+                    <input type="radio" name="paymentMethod" value="CARD">
+                    <i class="bi bi-credit-card fs-4 ms-1 me-2" aria-hidden="true"></i>
+                    <span><strong>Card</strong><br><small class="text-secondary-emphasis">Development gateway - no real charge. Test decline: 4000 0000 0000 0002</small></span>
+                </label>
+
+                <div id="card-fields" class="d-none mt-3 ms-4" aria-label="Card details">
+                    <div class="row g-3">
+                        <div class="col-12"><label class="form-label" for="card-number">Card number</label>
+                            <input class="form-control" id="card-number" inputmode="numeric"
+                                   placeholder="4242 4242 4242 4242" maxlength="23"></div>
+                        <div class="col-6 col-md-4"><label class="form-label" for="card-expiry">Expiry (MM/YY)</label>
+                            <input class="form-control" id="card-expiry" placeholder="12/28" maxlength="5"></div>
+                        <div class="col-6 col-md-4"><label class="form-label" for="card-cvc">CVC</label>
+                            <input class="form-control" id="card-cvc" placeholder="123" maxlength="4"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary js-back" data-goto="1">Back</button>
+                    <button type="button" class="btn btn-primary js-next" data-goto="3">Review order</button>
+                </div>
+            </section>
+
+            <%# ============================ STEP 3 ============================ %>
+            <section class="checkout-panel card-panel d-none" data-panel="3" aria-label="Order review">
+                <h2 class="h5 fw-bold mb-3">Review your order</h2>
+
+                <ul class="list-unstyled review-items">
+                    <% cart.items.forEach((item) => { %>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span>
+                                <%= item.product.name %> × <%= item.quantity %>
+                            </span>
+                            <strong><%= formatPrice(item.lineTotal) %></strong>
+                        </li>
+                    <% }) %>
+                </ul>
+
+                <div id="review-recap" class="small text-secondary-emphasis mt-3"><!-- filled by JS --></div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary js-back" data-goto="2">Back</button>
+                    <button type="button" class="btn btn-success btn-lg flex-grow-1 js-place-order">
+                        <i class="bi bi-lock-fill me-2" aria-hidden="true"></i>Place order
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <%# ============================ SUMMARY ============================ %>
+        <div class="col-12 col-lg-4">
+            <div class="cart-summary">
+                <h2 class="h5 fw-bold mb-3">Order summary</h2>
+
+                <dl class="mb-3 checkout-totals">
+                    <dt class="d-flex justify-content-between"><span>Subtotal</span><span data-total="subtotal"><%= formatPrice(cart.subtotal) %></span></dt>
+                    <dt class="d-flex justify-content-between d-none" data-row="discount"><span>Discount <span data-coupon-chip class="badge bg-success"></span></span><span data-total="discount"></span></dt>
+                    <dt class="d-flex justify-content-between"><span>Shipping</span><span data-total="shipping"></span></dt>
+                    <dt class="d-flex justify-content-between border-top pt-2 mt-2"><strong>Total</strong><strong data-total="grand"></strong></dt>
+                </dl>
+
+                <label class="form-label small fw-semibold" for="coupon-code">Coupon code</label>
+                <div class="d-flex gap-2 mb-1">
+                    <input class="form-control form-control-sm text-uppercase" id="coupon-code"
+                           placeholder="e.g. SAVE10" maxlength="20">
+                    <button type="button" class="btn btn-outline-primary btn-sm text-nowrap js-apply-coupon">Apply</button>
+                </div>
+                <p class="small mb-0" id="coupon-feedback" role="status" aria-live="polite"></p>
+            </div>
+        </div>
+    </div>
+</div>

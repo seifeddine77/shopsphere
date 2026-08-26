@@ -1,0 +1,79 @@
+<%# ---------- ADMIN: Categories / Brands manager (shared) ----------
+    Expects: kind ('categories'|'brands'), items[] %>
+<% const label = kind === 'categories' ? 'Category' : 'Brand';
+   const endpoint = `/api/${kind}`; %>
+
+<h1 class="h3 fw-bold mb-4"><%= label %>s</h1>
+
+<div class="row g-4">
+    <%# ------------------------------ Create form ------------------------------ %>
+    <div class="col-12 col-lg-4">
+        <div class="panel">
+            <h2 class="panel-title">Add a <%= label.toLowerCase() %></h2>
+            <form id="<%= kind %>-form" data-endpoint="<%= endpoint %>" novalidate>
+                <div class="mb-3">
+                    <label class="form-label" for="<%= kind %>-name">Name *</label>
+                    <input class="form-control" id="<%= kind %>-name" name="name" required minlength="2">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="<%= kind %>-description">Description</label>
+                    <textarea class="form-control" id="<%= kind %>-description"
+                              name="description" rows="3" maxlength="1000"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary js-submit-form w-100">Create <%= label.toLowerCase() %></button>
+            </form>
+        </div>
+    </div>
+
+    <%# ------------------------------- List ------------------------------------- %>
+    <div class="col-12 col-lg-8">
+        <% if (items.length === 0) { %>
+            <div class="empty-state">
+                <i class="bi bi-collection empty-state-icon" aria-hidden="true"></i>
+                <p class="mb-0 fw-semibold">No <%= kind %> yet</p>
+            </div>
+        <% } else { %>
+            <div class="table-responsive admin-table">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Slug</th>
+                            <th scope="col">Active</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% items.forEach((item) => { %>
+                            <tr data-row-id="<%= item._id %>">
+                                <td>
+                                    <input class="form-control form-control-sm js-rename-input"
+                                           style="max-width:220px" value="<%= item.name %>"
+                                           aria-label="Rename <%= item.name %>">
+                                </td>
+                                <td><code><%= item.slug %></code></td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input js-toggle-field" type="checkbox" role="switch"
+                                               data-endpoint="<%= endpoint %>/<%= item._id %>"
+                                               data-field="isActive" <%= item.isActive ? 'checked' : '' %>
+                                               aria-label="Toggle active for <%= item.name %>">
+                                    </div>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-outline-primary btn-sm js-save-rename"
+                                            data-endpoint="<%= endpoint %>/<%= item._id %>"
+                                            aria-label="Save rename"><i class="bi bi-check-lg"></i></button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
+                                            data-endpoint="<%= endpoint %>/<%= item._id %>"
+                                            data-confirm="Delete "<%- item.name %>"?"
+                                            aria-label="Delete <%= item.name %>"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
+</div>

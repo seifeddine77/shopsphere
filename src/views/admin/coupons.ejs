@@ -1,0 +1,108 @@
+<%# ---------- ADMIN: Coupons ---------- %>
+<h1 class="h3 fw-bold mb-4">Coupons</h1>
+
+<div class="row g-4">
+    <%# ------------------------------ Create form ------------------------------ %>
+    <div class="col-12 col-lg-4">
+        <div class="panel">
+            <h2 class="panel-title">Create a coupon</h2>
+            <form id="coupon-form" data-endpoint="/api/admin/coupons" novalidate>
+                <div class="mb-2">
+                    <label class="form-label" for="coupon-code">Code *</label>
+                    <input class="form-control text-uppercase" id="coupon-code" name="code"
+                           required maxlength="20" placeholder="SAVE15">
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-7">
+                        <label class="form-label" for="coupon-type">Type *</label>
+                        <select class="form-select" id="coupon-type" name="discountType">
+                            <option value="PERCENTAGE">Percentage %</option>
+                            <option value="FIXED">Fixed $</option>
+                        </select>
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label" for="coupon-value">Value *</label>
+                        <input type="number" min="0" step="0.01" class="form-control"
+                               id="coupon-value" name="discountValue" required>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label" for="coupon-min">Min. order</label>
+                        <input type="number" min="0" step="0.01" class="form-control"
+                               id="coupon-min" name="minimumAmount" value="0">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="coupon-max">Max discount</label>
+                        <input type="number" min="0" step="0.01" class="form-control"
+                               id="coupon-max" name="maximumDiscount" placeholder="none">
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label" for="coupon-expiry">Expires</label>
+                        <input type="date" class="form-control" id="coupon-expiry" name="expirationDate">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="coupon-limit">Usage limit</label>
+                        <input type="number" min="0" step="1" class="form-control"
+                               id="coupon-limit" name="usageLimit" value="0">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 js-submit-form">Create coupon</button>
+            </form>
+        </div>
+    </div>
+
+    <%# -------------------------------- List ------------------------------------ %>
+    <div class="col-12 col-lg-8">
+        <% if (coupons.length === 0) { %>
+            <div class="empty-state">
+                <i class="bi bi-ticket-perforated empty-state-icon" aria-hidden="true"></i>
+                <p class="mb-0 fw-semibold">No coupons yet</p>
+            </div>
+        <% } else { %>
+            <div class="table-responsive admin-table">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">Code</th>
+                            <th scope="col">Discount</th>
+                            <th scope="col">Rules</th>
+                            <th scope="col">Usage</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% coupons.forEach((coupon) => { %>
+                            <tr class="<%= !coupon.isActive ? 'table-light text-secondary-emphasis' : '' %>">
+                                <td><strong><%= coupon.code %></strong></td>
+                                <td>
+                                    <%= coupon.discountType === 'PERCENTAGE'
+                                        ? `${coupon.discountValue}%`
+                                        : formatPrice(coupon.discountValue) %>
+                                    <% if (coupon.maximumDiscount != null) { %>
+                                        <br><small class="text-secondary-emphasis">max <%= formatPrice(coupon.maximumDiscount) %></small>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <small>
+                                        min <%= formatPrice(coupon.minimumAmount || 0) %>
+                                        <% if (coupon.expirationDate) { %><br>exp <%= formatDate(coupon.expirationDate) %><% } %>
+                                    </small>
+                                </td>
+                                <td><%= coupon.usedCount %><%= coupon.usageLimit > 0 ? ` / ${coupon.usageLimit}` : ' / ∞' %></td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
+                                            data-endpoint="/api/admin/coupons/<%= coupon._id %>"
+                                            data-confirm="Delete coupon "<%- coupon.code %>"?"
+                                            aria-label="Delete coupon <%= coupon.code %>"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
+</div>

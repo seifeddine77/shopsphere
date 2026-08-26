@@ -1,0 +1,124 @@
+<%# ---------- Profile (/profile) ----------
+    Expects: user (JSON), addresses[] %>
+
+<div class="container py-4">
+    <h1 class="h3 fw-bold mb-4">My profile</h1>
+
+    <div class="row g-4">
+        <%# ------------------------- Personal info --------------------------- %>
+        <div class="col-12 col-lg-6">
+            <div class="card-panel h-100">
+                <h2 class="panel-title">Personal information</h2>
+                <form id="profile-form" novalidate>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label" for="pf-first">First name</label>
+                            <input class="form-control" id="pf-first" name="firstName"
+                                   value="<%= user.firstName %>" required minlength="2">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" for="pf-last">Last name</label>
+                            <input class="form-control" id="pf-last" name="lastName"
+                                   value="<%= user.lastName %>" required minlength="2">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="pf-email">Email</label>
+                            <input class="form-control" id="pf-email" value="<%= user.email %>" disabled>
+                            <div class="form-text">Email address cannot be changed.</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="pf-phone">Phone</label>
+                            <input class="form-control" id="pf-phone" name="phone"
+                                   value="<%= user.phone %>" placeholder="+216 ...">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3 px-4 js-submit-profile">Save</button>
+                </form>
+            </div>
+        </div>
+
+        <%# -------------------------- Password ------------------------------- %>
+        <div class="col-12 col-lg-6">
+            <div class="card-panel h-100">
+                <h2 class="panel-title">Change password</h2>
+                <form id="password-form" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label" for="pw-current">Current password</label>
+                        <input type="password" class="form-control" id="pw-current"
+                               name="currentPassword" autocomplete="current-password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="pw-new">New password</label>
+                        <input type="password" class="form-control" id="pw-new"
+                               name="newPassword" autocomplete="new-password" required minlength="8"
+                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}">
+                        <div class="form-text">8+ characters with upper &amp; lower case letters and a digit.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="pw-confirm">Confirm new password</label>
+                        <input type="password" class="form-control" id="pw-confirm"
+                               name="confirmPassword" autocomplete="new-password" required minlength="8">
+                    </div>
+                    <button type="submit" class="btn btn-primary js-submit-password px-4">Update password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <%# ---------------------------- Addresses ------------------------------ %>
+    <section class="mt-4" aria-labelledby="addresses-heading">
+        <h2 id="addresses-heading" class="h4 fw-bold mb-3">Shipping addresses</h2>
+
+        <div class="row g-3 mb-4">
+            <% if (addresses.length === 0) { %>
+                <p class="text-secondary-emphasis small mb-0">No saved addresses yet - add one below or during checkout.</p>
+            <% } else { %>
+                <% addresses.forEach((address) => { %>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="card-panel h-100 address-card-view <%= address.isDefault ? 'address-default' : '' %>">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <strong><%= address.label || 'Address' %>
+                                    <% if (address.isDefault) { %><span class="badge bg-primary-subtle text-primary-emphasis ms-1">Default</span><% } %>
+                                </strong>
+                                <button type="button" class="btn btn-outline-danger btn-sm py-0 js-address-delete"
+                                        data-address-id="<%= address._id %>"
+                                        aria-label="Delete address <%= address.label %>"><i class="bi bi-trash"></i></button>
+                            </div>
+                            <address class="small mb-0 text-body-secondary">
+                                <%= address.fullName %><br>
+                                <%= address.street %><br>
+                                <%= address.city %> <%= address.state %> <%= address.postalCode %>, <%= address.country %><br>
+                                <i class="bi bi-telephone" aria-hidden="true"></i> <%= address.phone %>
+                            </address>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+
+        <div class="card-panel" style="max-width:720px">
+            <h3 class="h6 fw-bold mb-3">Add a new address</h3>
+            <form id="address-add-form" novalidate>
+                <div class="row g-2">
+                    <div class="col-6 col-md-3"><label class="form-label small" for="ad-label">Label</label>
+                        <input class="form-control form-control-sm" id="ad-label" name="label" value="Home"></div>
+                    <div class="col-6 col-md-4"><label class="form-label small" for="ad-name">Full name *</label>
+                        <input class="form-control form-control-sm" id="ad-name" name="fullName" value="<%= `${user.firstName} ${user.lastName}` %>" required></div>
+                    <div class="col-12 col-md-5"><label class="form-label small" for="ad-phone">Phone *</label>
+                        <input class="form-control form-control-sm" id="ad-phone" name="phone" required></div>
+                    <div class="col-12"><label class="form-label small" for="ad-street">Street *</label>
+                        <input class="form-control form-control-sm" id="ad-street" name="street" required></div>
+                    <div class="col-6 col-md-4"><label class="form-label small" for="ad-city">City *</label>
+                        <input class="form-control form-control-sm" id="ad-city" name="city" required></div>
+                    <div class="col-6 col-md-3"><label class="form-label small" for="ad-state">State</label>
+                        <input class="form-control form-control-sm" id="ad-state" name="state"></div>
+                    <div class="col-6 col-md-2"><label class="form-label small" for="ad-zip">Postal code *</label>
+                        <input class="form-control form-control-sm" id="ad-zip" name="postalCode" required></div>
+                    <div class="col-6 col-md-3"><label class="form-label small" for="ad-country">Country *</label>
+                        <input class="form-control form-control-sm" id="ad-country" name="country" required></div>
+                </div>
+                <button type="submit" class="btn btn-outline-primary btn-sm mt-3 js-address-add">Save address</button>
+            </form>
+        </div>
+    </section>
+</div>

@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      MONGODB_URI: mongodb://mongo:27017/ecommerce
+      CORS_ORIGIN: http://localhost:3000
+      # Provide real secrets via an env file in production:
+      #   env_file: .env.production
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-0123456789abcdef}
+      COOKIE_SECRET: ${COOKIE_SECRET:-change-me-in-production-fedcba9876543210}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  mongodata:

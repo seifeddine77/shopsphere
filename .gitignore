@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment secrets — never commit
+.env
+.env.local
+.env.*.local
+.env.production
+nginx/certs/
+mongo-keyfile*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Uploads (user-generated content)
+public/uploads/
+
+# Test coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.swp

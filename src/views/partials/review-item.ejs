@@ -1,0 +1,35 @@
+<%# ---------- Single review card ----------
+    Expects: review (JSON), mine (boolean - shows management actions) %>
+<article class="review-item <%= mine ? 'review-mine' : '' %>" data-review-id="<%= review._id %>">
+    <span class="review-avatar" aria-hidden="true">
+        <% const initial = ((review.user && (review.user.firstName || '?')) || '?'); %>
+        <%= String(initial).charAt(0).toUpperCase() %>
+    </span>
+    <div class="review-body">
+        <header class="d-flex flex-wrap align-items-center gap-2">
+            <strong class="review-author">
+                <%= review.user ? `${review.user.firstName} ${review.user.lastName}` : 'Customer' %>
+            </strong>
+            <%- include('star-rating', { rating: review.rating, count: null }) %>
+            <time class="text-secondary-emphasis small ms-auto" datetime="<%= review.createdAt %>">
+                <%= formatDate(review.createdAt) %>
+            </time>
+        </header>
+        <p class="review-comment mb-1"><%= review.comment %></p>
+        <% if (!review.isApproved) { %>
+            <p class="small text-warning-emphasis mb-1">
+                <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>Awaiting approval
+            </p>
+        <% } %>
+        <% if (mine) { %>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm js-review-edit"
+                        data-review-id="<%= review._id %>"
+                        data-rating="<%= review.rating %>"
+                        data-comment="<%= review.comment %>">Edit</button>
+                <button type="button" class="btn btn-outline-danger btn-sm js-review-delete"
+                        data-review-id="<%= review._id %>">Delete</button>
+            </div>
+        <% } %>
+    </div>
+</article>

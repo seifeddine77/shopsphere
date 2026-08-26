@@ -1,0 +1,46 @@
+<%# ---------- Order lifecycle timeline ----------
+    Expects: order (JSON with statusHistory[], orderStatus) %>
+<%
+  const flow = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+  const labels = {
+    PENDING: 'Ordered',
+    CONFIRMED: 'Confirmed',
+    PROCESSING: 'Processing',
+    SHIPPED: 'Shipped',
+    DELIVERED: 'Delivered',
+  };
+  const cancelled = order.orderStatus === 'CANCELLED';
+  const currentIndex = flow.indexOf(order.orderStatus);
+  const historyByStatus = {};
+  (order.statusHistory || []).forEach((entry) => { historyByStatus[entry.status] = entry; });
+%>
+
+<div class="order-timeline" role="list" aria-label="Order progress">
+    <% if (cancelled) { %>
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+            <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+            <span>
+                This order was cancelled
+                <% const entry = historyByStatus.CANCELLED; %>
+                <% if (entry) { %>on <%= formatDate(entry.at) %><% } %>.
+            </span>
+        </div>
+    <% } else { %>
+        <ol class="timeline-track">
+            <% flow.forEach((status, index) => { %>
+                <li class="timeline-step <%= index <= currentIndex ? 'done' : '' %>
+                        <%= index === currentIndex ? 'current' : '' %>"
+                    role="listitem"
+                    aria-current="<%= index === currentIndex ? 'step' : 'false' %>">
+                    <span class="timeline-dot">
+                        <i class="bi <%= index <= currentIndex ? 'bi-check' : 'bi-circle' %>" aria-hidden="true"></i>
+                    </span>
+                    <span class="timeline-label"><%= labels[status] %></span>
+                    <% if (historyByStatus[status]) { %>
+                        <time class="timeline-date"><%= formatDate(historyByStatus[status].at) %></time>
+                    <% } %>
+                </li>
+            <% }) %>
+        </ol>
+    <% } %>
+</div>

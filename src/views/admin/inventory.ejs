@@ -1,0 +1,73 @@
+<%# ---------- ADMIN: Inventory ---------- %>
+<h1 class="h3 fw-bold mb-1">Inventory</h1>
+<p class="text-secondary-emphasis small mb-4">
+    Low stock threshold: <strong>&le; <%= threshold %> units</strong>. Adjust quantities inline.
+</p>
+
+<div class="row g-4">
+    <%# ----------------------------- Low stock ------------------------------ %>
+    <div class="col-12 col-xl-6">
+        <section class="panel" aria-labelledby="low-heading">
+            <h2 id="low-heading" class="panel-title text-warning-emphasis">
+                <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Low stock (<%= lowStock.length %>)
+            </h2>
+            <% if (lowStock.length === 0) { %>
+                <p class="small text-secondary-emphasis mb-0">Nothing is running low.</p>
+            <% } else { %>
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col" style="width:190px">Stock</th></tr></thead>
+                    <tbody>
+                        <% lowStock.forEach((product) => { %>
+                            <tr data-product-id="<%= product._id %>">
+                                <td class="text-truncate" style="max-width:200px"><%= product.name %><br><code class="small"><%= product.sku %></code></td>
+                                <td class="small text-secondary-emphasis"><%= product.category ? product.category.name : '—' %></td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" min="0" step="1"
+                                               class="form-control js-stock-input" value="<%= product.stock %>"
+                                               aria-label="New stock for <%= product.name %>">
+                                        <button type="button" class="btn btn-outline-primary js-stock-save"
+                                                data-endpoint="/api/products/<%= product._id %>">Set</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } %>
+        </section>
+    </div>
+
+    <%# ---------------------------- Out of stock ----------------------------- %>
+    <div class="col-12 col-xl-6">
+        <section class="panel" aria-labelledby="out-heading">
+            <h2 id="out-heading" class="panel-title text-danger-emphasis">
+                <i class="bi bi-x-octagon me-1" aria-hidden="true"></i>Out of stock (<%= outOfStock.length %>)
+            </h2>
+            <% if (outOfStock.length === 0) { %>
+                <p class="small text-secondary-emphasis mb-0">Every active product has inventory.</p>
+            <% } else { %>
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col" style="width:190px">Restock</th></tr></thead>
+                    <tbody>
+                        <% outOfStock.forEach((product) => { %>
+                            <tr data-product-id="<%= product._id %>" class="table-danger">
+                                <td class="text-truncate" style="max-width:200px"><%= product.name %><br><code class="small"><%= product.sku %></code></td>
+                                <td class="small text-secondary-emphasis"><%= product.category ? product.category.name : '—' %></td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" min="0" step="1"
+                                               class="form-control js-stock-input" value="0"
+                                               aria-label="New stock for <%= product.name %>">
+                                        <button type="button" class="btn btn-outline-primary js-stock-save"
+                                                data-endpoint="/api/products/<%= product._id %>">Set</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } %>
+        </section>
+    </div>
+</div>

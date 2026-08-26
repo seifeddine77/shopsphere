@@ -1,0 +1,85 @@
+# ============================================================
+# PRODUCTION stack: app + mongo (replica set) + nginx (TLS) + certbot
+#
+#   1. node src/scripts/generate-secrets.js      -> .env.production
+#   2. edit .env.production (Stripe keys, DOMAIN_NAME)
+#   3. docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# TLS: certbot issues a real certificate for $DOMAIN_NAME on first boot.
+# For local HTTPS testing without a domain, place self-signed certs in
+# ./nginx/certs and start with CERTBOT_ENABLED=false.
+# ============================================================
+
+services:
+  app:
+    build: .
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      APP_URL: https://${DOMAIN_NAME}
+      # Replica-set connection string (authSource admin, direct rs)
+      MONGODB_URI: mongodb://appuser:${MONGO_APP_PASSWORD}@mongo:27017/ecommerce?replicaSet=rs0&authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      CORS_ORIGIN: https://${DOMAIN_NAME}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  mongo:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongodata:/data/db
+      - mongokey:/etc/mongo-keyfile
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    healthcheck:
+      test: >
+        mongosh --quiet -u root -p "$$MONGO_INITDB_ROOT_PASSWORD" --eval "
+        try { rs.status().ok } catch (e) {
+          rs.initiate({_id:'rs0', members:[{_id:0, host:'mongo:27017'}]}).ok
+        }" | grep -q 1
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/certs:/etc/nginx/certs
+      - certbot-webroot:/var/www/certbot
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:v2.11.0
+    profiles: ["tls"]                       # run manually: docker compose ... run --rm tls certbot ...
+    volumes:
+      - ./nginx/certs:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet;
+      sleep 12h & wait $${!}; done"
+
+volumes:
+  mongodata:
+  mongokey:
+  certbot-webroot:

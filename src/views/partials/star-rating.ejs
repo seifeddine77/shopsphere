@@ -1,0 +1,17 @@
+<%# Accessible star rating.
+    Expects: rating (0-5), count (optional review total) %>
+<%
+  const value = Number(locals.rating) || 0;
+  const stars = [];
+  for (let i = 1; i <= 5; i += 1) {
+    if (value >= i) stars.push('bi-star-fill');
+    else if (value >= i - 0.5) stars.push('bi-star-half');
+    else stars.push('bi-star');
+  }
+%>
+<span class="star-rating" role="img" aria-label="Rated <%= value %> out of 5">
+    <% stars.forEach((icon) => { %><i class="bi <%= icon %>" aria-hidden="true"></i><% }) %>
+    <% if (typeof locals.count !== 'undefined' && count !== null) { %>
+        <small class="text-secondary-emphasis ms-1">(<%= count %>)</small>
+    <% } %>
+</span>

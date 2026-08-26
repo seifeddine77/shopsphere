@@ -1,0 +1,77 @@
+<%# ---------- ADMIN: Products table ---------- %>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <h1 class="h3 fw-bold mb-0">Products</h1>
+    <a href="/admin/products/new" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>New product</a>
+</div>
+
+<form class="d-flex gap-2 mb-3" method="get" action="/admin/products" role="search">
+    <input type="search" class="form-control" style="max-width:320px" name="q"
+           value="<%= currentQ %>" placeholder="Search by name or SKU..." aria-label="Search products">
+    <button class="btn btn-outline-secondary" type="submit">Search</button>
+    <% if (currentQ) { %><a href="/admin/products" class="btn btn-link text-decoration-none">Clear</a><% } %>
+</form>
+
+<% if (products.length === 0) { %>
+    <div class="empty-state">
+        <i class="bi bi-box empty-state-icon" aria-hidden="true"></i>
+        <p class="mb-0 fw-semibold">No products found</p>
+    </div>
+<% } else { %>
+    <div class="table-responsive admin-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Product</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Stock</th>
+                    <th scope="col">Flags</th>
+                    <th scope="col" class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach((product) => { %>
+                    <tr data-product-id="<%= product._id %>">
+                        <td>
+                            <strong><%= product.name %></strong><br>
+                            <small class="text-secondary-emphasis"><%= product.sku %>
+                                <% if (product.category) { %>· <%= product.category.name %><% } %></small>
+                        </td>
+                        <td>
+                            <%= formatPrice(product.effectivePrice) %>
+                            <% if (product.discountPrice != null) { %>
+                                <br><s class="small text-secondary-emphasis"><%= formatPrice(product.price) %></s>
+                            <% } %>
+                        </td>
+                        <td><span class="badge <%= product.stock === 0 ? 'bg-danger' : product.stock <= 5 ? 'bg-warning text-dark' : 'bg-success-subtle text-success-emphasis' %>"><%= product.stock %></span></td>
+                        <td>
+                            <div class="form-check form-switch mb-1">
+                                <input class="form-check-input js-toggle-field" type="checkbox" role="switch"
+                                       data-endpoint="/api/products/<%= product._id %>"
+                                       data-field="isActive" <%= product.isActive ? 'checked' : '' %>
+                                       aria-label="Toggle active for <%= product.name %>">
+                                <label class="form-check-label small">Active</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input js-toggle-field" type="checkbox" role="switch"
+                                       data-endpoint="/api/products/<%= product._id %>"
+                                       data-field="isFeatured" <%= product.isFeatured ? 'checked' : '' %>
+                                       aria-label="Toggle featured for <%= product.name %>">
+                                <label class="form-check-label small">Featured</label>
+                            </div>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a href="/products/<%= product.slug %>" class="btn btn-outline-secondary btn-sm" title="View in store"><i class="bi bi-eye"></i></a>
+                            <a href="/admin/products/<%= product._id %>/edit" class="btn btn-outline-primary btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
+                                    data-endpoint="/api/products/<%= product._id %>"
+                                    data-confirm="Delete "<%- product.name %>" permanently?"
+                                    aria-label="Delete <%= product.name %>"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+
+    <%- include('../partials/pagination', { pagination, baseQuery }) %>
+<% } %>

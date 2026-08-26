@@ -1,0 +1,13 @@
+/* ==========================================================================
+   Profile page
+   ========================================================================== */
+
+.address-card-view { font-size: 0.92rem; }
+
+.address-default {
+    border: 1px solid rgba(79, 70, 229, 0.35);
+}
+
+@media (max-width: 575.98px) {
+    .address-card-view .btn { margin-top: 0.35rem; }
+}

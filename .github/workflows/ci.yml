@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Lint & Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # The integration suite boots an in-memory MongoDB whose binary is
+      # ~400 MB - cache it between runs keyed on the package lockfile.
+      - name: Cache MongoDB binary (mongodb-memory-server)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --no-fund --no-audit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t shopsphere:${{ github.sha }} .
+
+      - name: Smoke test container health endpoint
+        run: |
+          docker run -d --name smoke \
+            -e MONGODB_URI="mongodb://invalid:27017/ecommerce" \
+            -p 3000:3000 shopsphere:${{ github.sha }}
+          for i in $(seq 1 15); do
+            if curl -fsS http://127.0.0.1:3000/health > /dev/null; then
+              echo "Health check OK"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Health check failed"
+          docker logs smoke
+          exit 1

@@ -1,0 +1,66 @@
+<%# ---------- ADMIN: Review moderation ---------- %>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <h1 class="h3 fw-bold mb-0">Review moderation</h1>
+    <nav aria-label="Review filter" class="d-flex gap-2">
+        <a class="status-filter <%= currentFilter === '' ? 'active' : '' %>" href="/admin/reviews">All</a>
+        <a class="status-filter <%= currentFilter === 'false' ? 'active' : '' %>" href="/admin/reviews?approved=false">Pending</a>
+        <a class="status-filter <%= currentFilter === 'true' ? 'active' : '' %>" href="/admin/reviews?approved=true">Approved</a>
+    </nav>
+</div>
+
+<% if (reviews.length === 0) { %>
+    <div class="empty-state">
+        <i class="bi bi-star empty-state-icon" aria-hidden="true"></i>
+        <p class="mb-0 fw-semibold">Nothing in this queue</p>
+    </div>
+<% } else { %>
+    <div class="table-responsive admin-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Product</th>
+                    <th scope="col">Reviewer</th>
+                    <th scope="col">Rating</th>
+                    <th scope="col">Comment</th>
+                    <th scope="col">State</th>
+                    <th scope="col" class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% reviews.forEach((review) => { %>
+                    <tr data-review-id="<%= review._id %>" class="<%= review.isApproved ? '' : 'table-warning' %>">
+                        <td><% if (review.product) { %><a href="/products/<%= review.product.slug %>" class="text-decoration-none"><%= review.product.name %></a><% } else { %>—<% } %></td>
+                        <td>
+                            <%= review.user ? `${review.user.firstName} ${review.user.lastName}` : '—' %><br>
+                            <small class="text-secondary-emphasis"><%= review.user ? review.user.email : '' %></small>
+                        </td>
+                        <td><%- include('../partials/star-rating', { rating: review.rating, count: null }) %></td>
+                        <td class="small" style="max-width:280px"><%= review.comment %></td>
+                        <td>
+                            <span class="badge <%= review.isApproved ? 'bg-success-subtle text-success-emphasis' : 'bg-warning text-dark' %>">
+                                <%= review.isApproved ? 'Published' : 'Pending' %>
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <% if (!review.isApproved) { %>
+                                <button type="button" class="btn btn-outline-success btn-sm js-review-moderate"
+                                        data-endpoint="/api/admin/reviews/<%= review._id %>/approve"
+                                        title="Approve"><i class="bi bi-check-lg"></i></button>
+                            <% } else { %>
+                                <button type="button" class="btn btn-outline-warning btn-sm js-review-moderate"
+                                        data-endpoint="/api/admin/reviews/<%= review._id %>/reject"
+                                        title="Unpublish (reject)"><i class="bi bi-eye-slash"></i></button>
+                            <% } %>
+                            <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
+                                    data-endpoint="/api/admin/reviews/<%= review._id %>"
+                                    data-confirm="Delete this review permanently?"
+                                    title="Delete"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+
+    <%- include('../partials/pagination', { pagination, baseQuery }) %>
+<% } %>

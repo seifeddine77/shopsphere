@@ -1,0 +1,93 @@
+<%# ---------- Admin: order lifecycle console (/admin/orders) ----------
+    Expects: orders[], pagination, statuses[], transitions{}, currentStatus %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h1 class="h3 fw-bold mb-0">Order management</h1>
+        <span class="badge bg-primary-subtle text-primary-emphasis">Admin console</span>
+    </div>
+
+    <%# ------------------------------ Filters ------------------------------- %>
+    <nav class="mb-3" aria-label="Filter by status">
+        <ul class="list-unstyled d-flex flex-wrap gap-2 mb-0">
+            <li><a class="status-filter <%= !currentStatus ? 'active' : '' %>" href="/admin/orders">All</a></li>
+            <% statuses.forEach((status) => { %>
+                <li><a class="status-filter <%= currentStatus === status ? 'active' : '' %>"
+                       href="/admin/orders?status=<%= status %>"><%= status %></a></li>
+            <% }) %>
+        </ul>
+    </nav>
+
+    <% if (orders.length === 0) { %>
+        <div class="empty-state">
+            <i class="bi bi-inbox empty-state-icon" aria-hidden="true"></i>
+            <p class="mb-0 fw-semibold">No orders found</p>
+        </div>
+    <% } else { %>
+        <div class="table-responsive admin-table">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Order</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Items</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Payment</th>
+                        <th scope="col">Status / next step</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach((order) => { %>
+                        <% const allowed = transitions[order.orderStatus] || []; %>
+                        <tr data-order-id="<%= order._id %>">
+                            <td>
+                                <a href="/orders/<%= order._id %>" class="fw-semibold text-decoration-none"><%= order.orderNumber %></a><br>
+                                <small class="text-secondary-emphasis"><%= formatDate(order.createdAt) %></small>
+                            </td>
+                            <td>
+                                <%= order.user ? `${order.user.firstName} ${order.user.lastName}` : '—' %><br>
+                                <small class="text-secondary-emphasis"><%= order.user ? order.user.email : '' %></small>
+                            </td>
+                            <td><%= order.items.reduce((sum, i) => sum + i.quantity, 0) %></td>
+                            <td class="fw-bold"><%= formatPrice(order.total) %></td>
+                            <td>
+                                <span class="badge
+                                    <%= order.paymentStatus === 'PAID' ? 'bg-success-subtle text-success-emphasis'
+                                         : order.paymentStatus === 'REFUNDED' ? 'bg-warning-subtle text-warning-emphasis'
+                                         : 'bg-secondary-subtle text-secondary-emphasis' %>">
+                                    <%= order.paymentMethod %> · <%= order.paymentStatus %>
+                                </span>
+                                <% if (order.trackingNumber) { %>
+                                    <br><small class="text-secondary-emphasis"><code><%= order.trackingNumber %></code></small>
+                                <% } %>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 align-items-center status-controls">
+                                    <label class="visually-hidden" for="status-<%= order._id %>">New status</label>
+                                    <select id="status-<%= order._id %>"
+                                            class="form-select form-select-sm js-status-select"
+                                            style="width:auto">
+                                        <option value="" selected><%= order.orderStatus %> (current)</option>
+                                        <% allowed.forEach((nextStatus) => { %>
+                                            <option value="<%= nextStatus %>">&rarr; <%= nextStatus %></option>
+                                        <% }) %>
+                                    </select>
+                                    <input type="text" class="form-control form-control-sm js-tracking-input"
+                                           placeholder="Tracking #" maxlength="40"
+                                           aria-label="Tracking number for <%= order.orderNumber %>"
+                                           value="<%= order.trackingNumber %>" style="width:130px">
+                                    <button type="button" class="btn btn-primary btn-sm js-save-status"
+                                            data-order-id="<%= order._id %>"
+                                            <%= allowed.length ? '' : 'disabled' %>>Apply</button>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+    <%- include('../partials/pagination', { pagination, baseQuery }) %>
+<% } %>
+
+</div>

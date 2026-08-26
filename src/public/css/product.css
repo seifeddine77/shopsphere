@@ -1,0 +1,301 @@
+/* ==========================================================================
+   Catalog & product pages (cards, filters, gallery, pagination)
+   ========================================================================== */
+
+/* --------------------------- Product cards ------------------------------ */
+
+.product-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-sm);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ss-shadow-md);
+}
+
+.product-media {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background-color: var(--ss-bg);
+}
+
+.product-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.badge-discount {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background-color: var(--ss-accent);
+    color: #111827;
+    font-weight: 700;
+}
+
+.badge-new {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background-color: var(--ss-primary);
+    color: #fff;
+    font-weight: 600;
+}
+
+.badge-out {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(17, 24, 39, 0.82);
+    color: #fff;
+}
+
+.product-body {
+    padding: 1rem 1rem 0.5rem;
+    flex-grow: 1;
+}
+
+.product-brand {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--ss-muted);
+    margin-bottom: 0.25rem;
+}
+
+.product-title {
+    font-size: 0.95rem;
+    line-height: 1.35;
+    min-height: 2.6em;
+    margin-bottom: 0.4rem;
+}
+
+.product-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.product-title a:hover { color: var(--ss-primary); }
+
+.star-rating { color: var(--ss-accent); font-size: 0.85rem; }
+
+.product-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.price-current {
+    color: var(--ss-primary-dark);
+    font-weight: 700;
+}
+
+.price-old {
+    color: var(--ss-muted);
+    font-size: 0.9rem;
+}
+
+.product-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 1rem;
+}
+
+.btn-icon {
+    flex: 0 0 auto;
+    width: 42px;
+}
+
+/* ----------------------------- Filters panel ---------------------------- */
+
+.filter-panel {
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-sm);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.filter-heading {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ss-muted);
+    margin-bottom: 0.65rem;
+}
+
+.filter-list li + li { margin-top: 0.15rem; }
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    cursor: pointer;
+}
+
+.filter-option input { accent-color: var(--ss-primary); }
+
+.filter-option span:hover { color: var(--ss-primary); }
+
+/* Category chips on the home page */
+.category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.55rem 1.1rem;
+    background-color: var(--ss-surface);
+    border-radius: 999px;
+    box-shadow: var(--ss-shadow-sm);
+    text-decoration: none;
+    color: var(--ss-dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.category-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ss-shadow-md);
+    color: var(--ss-primary);
+}
+
+/* -------------------------------- Gallery -------------------------------- */
+
+.gallery-main {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background-color: var(--ss-bg);
+}
+
+.gallery-thumb {
+    width: 64px;
+    height: 64px;
+    border: 2px solid transparent !important;
+    border-radius: 8px;
+    overflow: hidden;
+    opacity: 0.7;
+}
+
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.gallery-thumb.active,
+.gallery-thumb:hover {
+    border-color: var(--ss-primary) !important;
+    opacity: 1;
+}
+
+/* Quantity stepper */
+.qty-stepper {
+    width: 130px;
+}
+
+.qty-stepper .form-control {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.qty-stepper .form-control::-webkit-outer-spin-button,
+.qty-stepper .form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Specifications table */
+.spec-table th { width: 40%; }
+
+/* ------------------------------- Reviews --------------------------------- */
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.review-item {
+    display: flex;
+    gap: 0.9rem;
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-sm);
+    padding: 1rem 1.1rem;
+}
+
+.review-mine {
+    border: 1px solid rgba(79, 70, 229, 0.25);
+}
+
+.review-avatar {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: var(--ss-primary);
+    color: #fff;
+    font-weight: 700;
+}
+
+.review-author { font-size: 0.95rem; }
+
+.review-comment {
+    color: #374151;
+    margin-top: 0.35rem;
+}
+
+/* Star input widget */
+.star-input .star-btn {
+    border: none;
+    background: none;
+    padding: 0 2px;
+    font-size: 1.45rem;
+    line-height: 1;
+    color: #d1d5db;
+}
+
+.star-input .star-btn i.bi-star-fill,
+.star-input .star-btn:hover i {
+    color: var(--ss-accent);
+}
+
+/* ---------------------------- Search suggest ----------------------------- */
+
+.search-suggest {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-md);
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.search-suggest a {
+    display: block;
+    padding: 0.55rem 1rem;
+    color: var(--ss-dark);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.search-suggest a:hover,
+.search-suggest a:focus-visible {
+    background-color: var(--ss-bg);
+    color: var(--ss-primary);
+}

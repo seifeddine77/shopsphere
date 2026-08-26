@@ -1,0 +1,188 @@
+/* ==========================================================================
+   Cart & wishlist pages
+   ========================================================================== */
+
+.cart-list {
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-sm);
+}
+
+.cart-row {
+    display: grid;
+    grid-template-columns: 84px 1fr auto auto auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.cart-row + .cart-row {
+    border-top: 1px solid #eef0f4;
+}
+
+.cart-row-disabled {
+    opacity: 0.55;
+}
+
+.cart-thumb img {
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+.cart-name {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 0.25rem;
+}
+
+.cart-name:hover { color: var(--ss-primary); }
+
+.qty-stepper-sm {
+    width: 116px;
+}
+
+.qty-stepper-sm .form-control {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.qty-stepper-sm .form-control::-webkit-outer-spin-button,
+.qty-stepper-sm .form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.cart-line-total {
+    min-width: 5.5rem;
+    text-align: right;
+}
+
+/* Summary card */
+.cart-summary {
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-md);
+    padding: 1.5rem;
+    position: sticky;
+    top: 90px;
+}
+
+.cart-summary dt {
+    padding: 0.3rem 0;
+    color: var(--ss-muted);
+}
+
+/* Wishlist extra action bar under cards */
+.wishlist-actions .btn { white-space: nowrap; }
+
+/* ------------------------------- Checkout -------------------------------- */
+
+.checkout-steps .step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ss-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    color: var(--ss-muted);
+    font-size: 0.8rem;
+}
+
+.checkout-steps .step.active {
+    color: var(--ss-primary-dark);
+}
+
+.checkout-steps .step.active .step-number {
+    background-color: var(--ss-primary);
+    color: #fff;
+}
+
+.card-panel {
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-sm);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.address-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 0.75rem;
+}
+
+.address-card {
+    border: 2px solid #e5e7eb;
+    border-radius: var(--ss-radius);
+    padding: 0.85rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: border-color 0.15s ease;
+}
+
+.address-card:has(input:checked),
+.address-card:hover {
+    border-color: var(--ss-primary);
+}
+
+.address-card input {
+    accent-color: var(--ss-primary);
+    margin-right: 0.4rem;
+}
+
+.payment-option {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 2px solid #e5e7eb;
+    border-radius: var(--ss-radius);
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.payment-option:hover,
+.payment-option:has(input:checked) {
+    border-color: var(--ss-primary);
+}
+
+.payment-option input { accent-color: var(--ss-primary); }
+
+.review-items { font-size: 0.95rem; }
+
+.checkout-totals dt { padding: 0.2rem 0; }
+
+@media (max-width: 767.98px) {
+    .cart-row {
+        grid-template-columns: 64px 1fr auto;
+        grid-template-areas:
+            'thumb info remove'
+            'thumb qty   total';
+        row-gap: 0.6rem;
+    }
+
+    .cart-thumb { grid-area: thumb; }
+    .cart-thumb img { width: 64px; height: 64px; }
+    .cart-info { grid-area: info; }
+    .qty-stepper-sm { grid-area: qty; justify-self: start; }
+    .cart-line-total { grid-area: total; align-self: center; }
+    .js-remove-item { grid-area: remove; justify-self: end; }
+
+    .cart-summary { position: static; }
+}

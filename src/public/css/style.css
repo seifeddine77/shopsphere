@@ -1,0 +1,154 @@
+/* ==========================================================================
+   ShopSphere - global stylesheet
+   Design tokens + shared components. Page-specific styles live in
+   separate files (auth.css, product.css, cart.css, admin.css).
+   ========================================================================== */
+
+:root {
+    --ss-primary: #4f46e5;
+    --ss-primary-dark: #4338ca;
+    --ss-accent: #f59e0b;
+    --ss-dark: #111827;
+    --ss-muted: #6b7280;
+    --ss-surface: #ffffff;
+    --ss-bg: #f8fafc;
+    --ss-radius: 0.75rem;
+    --ss-shadow-sm: 0 1px 3px rgba(17, 24, 39, 0.08);
+    --ss-shadow-md: 0 6px 18px rgba(17, 24, 39, 0.09);
+}
+
+body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background-color: var(--ss-bg);
+    color: var(--ss-dark);
+}
+
+/* ------------------------------- Navbar -------------------------------- */
+.site-navbar {
+    background-color: var(--ss-surface);
+    box-shadow: var(--ss-shadow-sm);
+}
+
+.brand-icon { color: var(--ss-primary); }
+.brand-accent { color: var(--ss-primary); }
+
+.search-input {
+    border-radius: 999px;
+    padding-inline-start: 1rem;
+}
+
+.badge-counter {
+    position: absolute;
+    top: -2px;
+    right: -8px;
+    min-width: 1.25em;
+    padding: 0.15em 0.35em;
+    font-size: 0.65rem;
+    line-height: 1.2;
+    color: #fff;
+    background-color: var(--ss-accent);
+    border-radius: 999px;
+    text-align: center;
+}
+
+/* -------------------------------- Hero --------------------------------- */
+.hero-section {
+    background:
+        radial-gradient(60rem 30rem at 85% -20%, rgba(245, 158, 11, 0.35), transparent 60%),
+        linear-gradient(135deg, var(--ss-primary-dark), var(--ss-primary));
+}
+
+.hero-kicker { opacity: 0.85; }
+.hero-subtitle { opacity: 0.9; max-width: 34rem; }
+
+.hero-art {
+    font-size: clamp(8rem, 16vw, 14rem);
+    opacity: 0.9;
+}
+
+/* ----------------------------- Value props ----------------------------- */
+.value-card {
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-sm);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.value-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ss-shadow-md);
+}
+
+.value-icon {
+    font-size: 1.75rem;
+    color: var(--ss-primary);
+}
+
+/* ---------------------------- Empty states ------------------------------ */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 3rem 1rem;
+    background-color: var(--ss-surface);
+    border: 1px dashed #d1d5db;
+    border-radius: var(--ss-radius);
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    color: var(--ss-muted);
+}
+
+/* ----------------------------- Promo banner ---------------------------- */
+.promo-banner {
+    background-color: var(--ss-surface);
+    border: 1px solid #e5e7eb;
+    box-shadow: var(--ss-shadow-sm);
+}
+
+.promo-subtitle { color: var(--ss-muted); }
+
+/* ------------------------------- Footer -------------------------------- */
+.site-footer {
+    background-color: var(--ss-dark);
+    color: #e5e7eb;
+}
+
+.site-footer .brand-accent,
+.site-footer h5 { color: #fff; }
+
+.footer-divider { border-color: rgba(255, 255, 255, 0.12); }
+
+.footer-links a {
+    display: inline-block;
+    padding: 0.15rem 0;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.footer-links a:hover,
+.footer-links a:focus-visible { color: #fff; }
+
+/* ------------------------------ Error page ----------------------------- */
+.error-page { min-height: 55vh; }
+.error-code { color: var(--ss-primary); }
+.error-message { max-width: 28rem; }
+
+/* ---------------------------- Accessibility ---------------------------- */
+:focus-visible {
+    outline: 3px solid var(--ss-accent);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}

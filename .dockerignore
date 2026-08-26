@@ -1,0 +1,12 @@
+node_modules
+coverage
+logs
+.env
+.env.local
+.git
+.github
+*.md
+!README.md
+src/public/uploads/products/*
+src/public/logs
+tests

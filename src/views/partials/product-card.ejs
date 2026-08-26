@@ -1,0 +1,60 @@
+<%# Reusable product card.
+    Expects: product (plain JSON from the product service) %>
+<%
+  const hasDiscount = product.discountPrice != null;
+  const isNew = product.createdAt
+    && (Date.now() - new Date(product.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
+  const outOfStock = !product.stock || product.stock <= 0;
+  const imageUrl = (product.images && product.images[0]) || '/images/placeholder.svg';
+%>
+<article class="product-card h-100" data-product-id="<%= product._id %>">
+    <div class="product-media">
+        <a href="/products/<%= product.slug %>" tabindex="-1" aria-hidden="true">
+            <img src="<%= imageUrl %>" alt="<%= product.name %>" loading="lazy">
+        </a>
+        <% if (hasDiscount) { %>
+            <span class="badge badge-discount">-<%= discountPercent(product) %>%</span>
+        <% } else if (isNew) { %>
+            <span class="badge badge-new">New</span>
+        <% } %>
+        <% if (outOfStock) { %>
+            <span class="badge badge-out">Out of stock</span>
+        <% } %>
+    </div>
+
+    <div class="product-body">
+        <% if (product.brand && product.brand.name) { %>
+            <p class="product-brand"><%= product.brand.name %></p>
+        <% } %>
+        <h3 class="product-title">
+            <a href="/products/<%= product.slug %>"><%= product.name %></a>
+        </h3>
+
+        <%- include('star-rating', { rating: product.rating, count: product.reviewCount }) %>
+
+        <div class="product-price">
+            <span class="price-current"><%= formatPrice(product.effectivePrice) %></span>
+            <% if (hasDiscount) { %>
+                <s class="price-old"><%= formatPrice(product.price) %></s>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="product-actions">
+        <% if (outOfStock) { %>
+            <button class="btn btn-secondary w-100" disabled aria-disabled="true">
+                <i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Unavailable
+            </button>
+        <% } else { %>
+            <button type="button" class="btn btn-primary w-100 js-add-to-cart"
+                    data-product-id="<%= product._id %>">
+                <i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Add to cart
+            </button>
+        <% } %>
+        <button type="button" class="btn btn-outline-secondary btn-icon js-add-to-wishlist"
+                data-product-id="<%= product._id %>"
+                aria-label="Add <%= product.name %> to wishlist">
+            <i class="bi bi-heart" aria-hidden="true"></i>
+        </button>
+    </div>
+</article>

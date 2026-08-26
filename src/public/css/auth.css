@@ -1,0 +1,49 @@
+/* ==========================================================================
+   Auth pages (login / register / forgot / reset)
+   ========================================================================== */
+
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 200px);
+    padding: 3rem 1rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background-color: var(--ss-surface);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-md);
+    padding: 2.5rem 2rem;
+}
+
+.auth-card-wide {
+    max-width: 560px;
+}
+
+.auth-brand-icon {
+    font-size: 2.25rem;
+    color: var(--ss-primary);
+}
+
+/* Inline field errors */
+.invalid-feedback[data-error-for] {
+    display: none;
+}
+
+.form-control.is-invalid ~ .invalid-feedback[data-error-for],
+.input-group .form-control.is-invalid + .invalid-feedback,
+.invalid-feedback.show {
+    display: block;
+}
+
+/* Password visibility toggle */
+.password-toggle i.bi-eye-slash::before { content: "\F292"; }
+
+@media (max-width: 575.98px) {
+    .auth-card {
+        padding: 2rem 1.25rem;
+    }
+}

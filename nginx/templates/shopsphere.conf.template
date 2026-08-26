@@ -1,0 +1,47 @@
+# Nginx template rendered by the nginx image's envsubst
+# (${DOMAIN_NAME} comes from the container environment).
+
+# ---------- HTTP : ACME challenges + redirect ----------
+server {
+    listen 80;
+    server_name ${DOMAIN_NAME};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # While no certificate exists yet, stay on HTTP so certbot can run.
+    location / {
+        proxy_pass http://app:3000;
+        proxy_set_header Host $$host;
+        proxy_set_header X-Real-IP $$remote_addr;
+        proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $$scheme;
+    }
+}
+
+# ---------- HTTPS ----------
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAIN_NAME};
+
+    ssl_certificate     /etc/nginx/certs/live/${DOMAIN_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/live/${DOMAIN_NAME}/privkey.pem;
+
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_session_cache   shared:SSL:10m;
+
+    client_max_body_size 3m;   # uploads cap is 2 MB + overhead
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    location / {
+        proxy_pass http://app:3000;
+        proxy_set_header Host $$host;
+        proxy_set_header X-Real-IP $$remote_addr;
+        proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}

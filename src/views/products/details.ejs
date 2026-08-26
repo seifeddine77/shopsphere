@@ -1,0 +1,231 @@
+<%# ---------- Product detail (/products/:slug) ----------
+    Expects: product (plain JSON), related[] %>
+<%
+  const hasDiscount = product.discountPrice != null;
+  const outOfStock = !product.stock || product.stock <= 0;
+  const images = product.images && product.images.length ? product.images : ['/images/placeholder.svg'];
+%>
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/products">Shop</a></li>
+            <% if (product.category) { %>
+                <li class="breadcrumb-item">
+                    <a href="/products?category=<%= product.category.slug %>"><%= product.category.name %></a>
+                </li>
+            <% } %>
+            <li class="breadcrumb-item active text-truncate" aria-current="page"><%= product.name %></li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <%# ------------------------------ Gallery ------------------------------ %>
+        <div class="col-12 col-md-6">
+            <figure class="gallery mb-0" id="product-gallery">
+                <img id="gallery-main" src="<%= images[0] %>" alt="<%= product.name %>"
+                     class="gallery-main rounded-4">
+                <% if (images.length > 1) { %>
+                    <div class="d-flex gap-2 mt-3 flex-wrap" role="listbox" aria-label="Product images">
+                        <% images.forEach((src, index) => { %>
+                            <button type="button"
+                                    class="gallery-thumb btn p-0 <%= index === 0 ? 'active' : '' %>"
+                                    data-src="<%= src %>"
+                                    aria-label="View image <%= index + 1 %> of <%= images.length %>">
+                                <img src="<%= src %>" alt="" loading="lazy">
+                            </button>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </figure>
+        </div>
+
+        <%# -------------------------------- Info -------------------------------- %>
+        <div class="col-12 col-md-6">
+            <% if (product.brand && product.brand.name) { %>
+                <p class="text-uppercase small fw-semibold letter-spacing text-secondary-emphasis mb-2">
+                    <%= product.brand.name %>
+                </p>
+            <% } %>
+
+            <h1 class="h2 fw-bold"><%= product.name %></h1>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <%- include('../partials/star-rating', { rating: product.rating, count: product.reviewCount }) %>
+                <span class="text-secondary-emphasis small">SKU: <%= product.sku %></span>
+            </div>
+
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+                <span class="display-6 fw-bold price-current"><%= formatPrice(product.effectivePrice) %></span>
+                <% if (hasDiscount) { %>
+                    <s class="fs-5 text-secondary-emphasis"><%= formatPrice(product.price) %></s>
+                    <span class="badge badge-discount fs-6">-<%= discountPercent(product) %>%</span>
+                <% } %>
+            </div>
+
+            <p class="mb-4">
+                <% if (outOfStock) { %>
+                    <span class="badge bg-danger-subtle text-danger-emphasis px-3 py-2">Out of stock</span>
+                <% } else if (product.stock <= 10) { %>
+                    <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2">
+                        Low stock - only <%= product.stock %> left
+                    </span>
+                <% } else { %>
+                    <span class="badge bg-success-subtle text-success-emphasis px-3 py-2">In stock</span>
+                <% } %>
+            </p>
+
+            <p class="text-body-secondary"><%= String(product.description).slice(0, 220) %><%= product.description.length > 220 ? '...' : '' %></p>
+
+            <%# --------------------------- Purchase row ---------------------------- %>
+            <div class="purchase-row d-flex flex-wrap align-items-center gap-3 mt-4">
+                <div class="qty-stepper input-group" data-stock="<%= product.stock %>">
+                    <button type="button" class="btn btn-outline-secondary js-qty-decrease"
+                            aria-label="Decrease quantity">&minus;</button>
+                    <label for="qty-input" class="visually-hidden">Quantity</label>
+                    <input type="number" id="qty-input" class="form-control text-center js-qty"
+                           value="1" min="1" max="<%= Math.max(product.stock, 1) %>"
+                           <%= outOfStock ? 'disabled' : '' %>>
+                    <button type="button" class="btn btn-outline-secondary js-qty-increase"
+                            aria-label="Increase quantity">+</button>
+                </div>
+
+                <% if (outOfStock) { %>
+                    <button class="btn btn-primary btn-lg flex-grow-1" disabled aria-disabled="true">
+                        <i class="bi bi-cart-plus me-2" aria-hidden="true"></i>Out of stock
+                    </button>
+                <% } else { %>
+                    <button type="button" class="btn btn-primary btn-lg flex-grow-1 js-add-to-cart"
+                            data-product-id="<%= product._id %>" data-stock="<%= product.stock %>">
+                        <i class="bi bi-cart-plus me-2" aria-hidden="true"></i>Add to cart
+                    </button>
+                <% } %>
+
+                <button type="button" class="btn btn-outline-danger btn-lg js-add-to-wishlist"
+                        data-product-id="<%= product._id %>"
+                        aria-label="Add <%= product.name %> to wishlist">
+                    <i class="bi bi-heart" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <dl class="row small mt-4 mb-0 text-secondary-emphasis">
+                <dt class="col-auto">Category:</dt>
+                <dd class="col-auto mb-0">
+                    <a href="/products?category=<%= product.category.slug %>"><%= product.category.name %></a>
+                </dd>
+                <dt class="col-auto ms-4">Added:</dt>
+                <dd class="col-auto mb-0"><%= formatDate(product.createdAt) %></dd>
+            </dl>
+        </div>
+    </div>
+
+    <%# ------------------------------ Details ------------------------------- %>
+    <section class="mt-5" aria-labelledby="details-heading">
+        <h2 id="details-heading" class="h4 fw-bold mb-3">Product details</h2>
+        <p class="text-body-secondary"><%= product.description %></p>
+
+        <% const specs = product.specifications || {}; const specKeys = Object.keys(specs); %>
+        <% if (specKeys.length > 0) { %>
+            <h3 class="h5 fw-semibold mt-4 mb-2">Specifications</h3>
+            <table class="table table-striped spec-table w-auto">
+                <tbody>
+                    <% specKeys.forEach((key) => { %>
+                        <tr>
+                            <th scope="row" class="text-secondary-emphasis fw-normal"><%= key %></th>
+                            <td><%= specs[key] %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } %>
+    </section>
+
+    <%# ------------------------------ Reviews ------------------------------- %>
+    <section class="mt-5" aria-labelledby="reviews-heading">
+        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+            <h2 id="reviews-heading" class="h4 fw-bold mb-0">Customer reviews</h2>
+            <%- include('../partials/star-rating', { rating: product.rating, count: product.reviewCount }) %>
+        </div>
+
+        <% if (reviews.length === 0) { %>
+            <div class="empty-state mb-4">
+                <i class="bi bi-chat-square-text empty-state-icon" aria-hidden="true"></i>
+                <p class="mb-1 fw-semibold">No reviews yet</p>
+                <p class="small text-secondary-emphasis mb-0">Be the first verified buyer to share your experience.</p>
+            </div>
+        <% } else { %>
+            <div class="review-list mb-4">
+                <% reviews.forEach((review) => { %>
+                    <%- include('../partials/review-item', { review, mine: false }) %>
+                <% }) %>
+            </div>
+        <% } %>
+
+        <%# --------------------- Write / manage own review ---------------------- %>
+        <% if (!currentUser) { %>
+            <p class="small text-secondary-emphasis">
+                <a href="/auth/login?redirect=<%= encodeURIComponent('/products/' + product.slug) %>" class="link-primary">Log in</a>
+                to write a review.
+            </p>
+        <% } else if (eligibility.allowed) { %>
+            <div class="card-panel review-form-panel">
+                <h3 id="review-form-heading" class="h6 fw-bold mb-3 js-form-title">Write your review</h3>
+                <form id="review-form" novalidate
+                      data-product="<%= product._id %>"
+                      data-slug="<%= product.slug %>">
+                    <fieldset class="mb-3">
+                        <legend class="form-label mb-1 small fw-semibold">Your rating</legend>
+                        <div class="star-input" role="radiogroup" aria-label="Rating">
+                            <% [1, 2, 3, 4, 5].forEach((value) => { %>
+                                <button type="button" class="star-btn" data-value="<%= value %>"
+                                        aria-label="<%= value %> star<%= value > 1 ? 's' : '' %>">
+                                    <i class="bi bi-star" aria-hidden="true"></i>
+                                </button>
+                            <% }) %>
+                            <input type="hidden" id="review-rating" value="">
+                        </div>
+                    </fieldset>
+                    <div class="mb-2">
+                        <label for="review-comment" class="form-label small fw-semibold">Your comment</label>
+                        <textarea id="review-comment" name="comment" class="form-control" rows="3"
+                                  minlength="10" maxlength="2000"
+                                  placeholder="What did you like or dislike?" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm px-4 js-review-submit">Submit review</button>
+                    <button type="button" class="btn btn-link btn-sm d-none js-review-cancel-edit">Cancel edit</button>
+                </form>
+            </div>
+        <% } else if (myReview) { %>
+            <div class="card-panel review-form-panel">
+                <h3 class="h6 fw-bold mb-3">Your review</h3>
+                <% if (!myReview.isApproved) { %>
+                    <p class="small text-warning-emphasis">
+                        <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>
+                        Your review is awaiting approval and will appear here once published.
+                    </p>
+                <% } %>
+                <%- include('../partials/review-item', { review: myReview, mine: true }) %>
+            </div>
+        <% } else if (eligibility.reason === 'purchase_required') { %>
+            <p class="small text-secondary-emphasis mb-0">
+                <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+                Only verified buyers can review this product.
+            </p>
+        <% } %>
+    </section>
+
+    <%# ----------------------------- Related -------------------------------- %>
+    <% if (related && related.length > 0) { %>
+        <section class="mt-5" aria-labelledby="related-heading">
+            <h2 id="related-heading" class="h4 fw-bold mb-3">You may also like</h2>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3">
+                <% related.forEach((relatedProduct) => { %>
+                    <div class="col">
+                        <%- include('../partials/product-card', { product: relatedProduct }) %>
+                    </div>
+                <% }) %>
+            </div>
+        </section>
+    <% } %>
+</div>
