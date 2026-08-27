@@ -1,109 +1,226 @@
-<%# ---------- ADMIN: Dashboard ---------- %>
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-    <h1 class="h3 fw-bold mb-0">Dashboard</h1>
-    <span class="text-secondary-emphasis small">Last 6 months overview</span>
+<%# ---------- ADMIN: Executive Pro Dashboard ---------- %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="h3 fw-bold mb-0">Executive Dashboard</h1>
+            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill px-2">Live Store</span>
+        </div>
+        <p class="text-secondary-emphasis small mb-0">Real-time performance analytics, revenue streams, and store health</p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#adminCopilotModal">
+            <i class="bi bi-stars text-primary"></i> Copilot Insights
+        </button>
+        <a href="/admin/products/new" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+            <i class="bi bi-plus-lg"></i> Add Product
+        </a>
+    </div>
 </div>
 
-<%# ------------------------------ KPI cards ------------------------------- %>
+<%# ------------------------------ KPI Metrics Grid ------------------------------- %>
 <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="kpi-card">
-            <span class="kpi-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
-            <div><p class="kpi-value mb-0"><%= stats.totalUsers %></p><p class="kpi-label mb-0">Customers</p></div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-xl-3">
         <div class="kpi-card revenue">
-            <span class="kpi-icon"><i class="bi bi-cash-stack" aria-hidden="true"></i></span>
-            <div><p class="kpi-value mb-0"><%= formatPrice(stats.revenue) %></p><p class="kpi-label mb-0">Revenue</p></div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="kpi-card pending">
-            <span class="kpi-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
-            <div><p class="kpi-value mb-0"><%= stats.pendingOrders %></p><p class="kpi-label mb-0">Pending orders</p></div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="kpi-card stock">
-            <span class="kpi-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
-            <div><p class="kpi-value mb-0"><%= lowStock.length %></p><p class="kpi-label mb-0">Low stock items</p></div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-3 mb-4 align-items-stretch">
-    <%# ---------------------------- Charts ---------------------------- %>
-    <div class="col-12 col-xl-8">
-        <section class="panel" aria-labelledby="revenue-chart-heading">
-            <h2 id="revenue-chart-heading" class="panel-title">Revenue &amp; orders per month</h2>
-            <canvas id="monthly-chart" height="110"
-                    data-series='<%= JSON.stringify(charts.monthly) %>'
-                    aria-label="Bar chart of revenue and orders by month"
-                    role="img"></canvas>
-        </section>
-    </div>
-    <div class="col-12 col-xl-4">
-        <section class="panel" aria-labelledby="category-chart-heading">
-            <h2 id="category-chart-heading" class="panel-title">Sales by category</h2>
-            <% if (charts.categories.length === 0) { %>
-                <p class="small text-secondary-emphasis mb-0">No sales data yet.</p>
-            <% } else { %>
-                <canvas id="category-chart" height="220"
-                        data-series='<%= JSON.stringify(charts.categories) %>'
-                        aria-label="Doughnut chart of revenue by category"
-                        role="img"></canvas>
-            <% } %>
-        </section>
-    </div>
-</div>
-
-<div class="row g-3">
-    <%# --------------------------- Top products --------------------------- %>
-    <div class="col-12 col-lg-6">
-        <section class="panel" aria-labelledby="top-products-heading">
-            <h2 id="top-products-heading" class="panel-title">Top products</h2>
-            <% if (charts.topProducts.length === 0) { %>
-                <p class="small text-secondary-emphasis mb-0">No orders yet.</p>
-            <% } else { %>
-                <table class="table table-sm align-middle mb-0">
-                    <thead><tr><th scope="col">Product</th><th scope="col" class="text-end">Units</th><th scope="col" class="text-end">Revenue</th></tr></thead>
-                    <tbody>
-                        <% charts.topProducts.forEach((product) => { %>
-                            <tr>
-                                <td class="text-truncate" style="max-width:220px"><%= product.name %></td>
-                                <td class="text-end"><%= product.units %></td>
-                                <td class="text-end"><%= formatPrice(product.revenue) %></td>
-                            </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
-            <% } %>
-        </section>
-    </div>
-
-    <%# ---------------------------- Low stock ----------------------------- %>
-    <div class="col-12 col-lg-6">
-        <section class="panel" aria-labelledby="low-stock-heading">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <h2 id="low-stock-heading" class="panel-title mb-0">Low stock alerts</h2>
-                <a href="/admin/inventory" class="small link-primary text-decoration-none">Manage inventory</a>
+            <span class="kpi-icon"><i class="bi bi-currency-dollar"></i></span>
+            <div class="min-w-0 flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="kpi-label">Gross Revenue</span>
+                    <span class="kpi-badge bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-up-right"></i> +14.2%</span>
+                </div>
+                <div class="kpi-value"><%= formatPrice(stats.revenue) %></div>
             </div>
-            <% if (lowStock.length === 0) { %>
-                <p class="small text-secondary-emphasis mb-0 mt-2">All products are comfortably stocked.</p>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <span class="kpi-icon"><i class="bi bi-people-fill"></i></span>
+            <div class="min-w-0 flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="kpi-label">Total Customers</span>
+                    <span class="kpi-badge bg-primary-subtle text-primary-emphasis"><i class="bi bi-graph-up"></i> Active</span>
+                </div>
+                <div class="kpi-value"><%= stats.totalUsers %></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card pending">
+            <span class="kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+            <div class="min-w-0 flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="kpi-label">Pending Orders</span>
+                    <% if (stats.pendingOrders > 0) { %>
+                        <span class="kpi-badge bg-warning-subtle text-warning-emphasis">Action req.</span>
+                    <% } else { %>
+                        <span class="kpi-badge bg-secondary-subtle text-secondary-emphasis">All clear</span>
+                    <% } %>
+                </div>
+                <div class="kpi-value"><%= stats.pendingOrders %></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card stock">
+            <span class="kpi-icon"><i class="bi bi-shield-exclamation"></i></span>
+            <div class="min-w-0 flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="kpi-label">Stock Alerts</span>
+                    <% if (lowStock.length > 0) { %>
+                        <span class="kpi-badge bg-danger-subtle text-danger-emphasis"><%= lowStock.length %> low</span>
+                    <% } else { %>
+                        <span class="kpi-badge bg-success-subtle text-success-emphasis">Optimal</span>
+                    <% } %>
+                </div>
+                <div class="kpi-value"><%= lowStock.length %></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%# ---------------------------- Charts Row ---------------------------- %>
+<div class="row g-3 mb-4 align-items-stretch">
+    <div class="col-12 col-xl-8">
+        <section class="panel d-flex flex-column h-100" aria-labelledby="revenue-chart-heading">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 id="revenue-chart-heading" class="panel-title mb-0">Revenue &amp; Orders Performance</h2>
+                    <small class="text-secondary-emphasis">Monthly sales volume and completed order trends</small>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis">Last 6 Months</span>
+            </div>
+            <div class="flex-grow-1 position-relative" style="min-height: 250px;">
+                <canvas id="monthly-chart" height="115"
+                        data-series='<%= JSON.stringify(charts.monthly) %>'
+                        aria-label="Bar chart of revenue and orders by month"
+                        role="img"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-4">
+        <section class="panel d-flex flex-column h-100" aria-labelledby="category-chart-heading">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 id="category-chart-heading" class="panel-title mb-0">Sales by Category</h2>
+                    <small class="text-secondary-emphasis">Revenue share breakdown</small>
+                </div>
+            </div>
+            <div class="flex-grow-1 d-flex align-items-center justify-content-center" style="min-height: 250px;">
+                <% if (charts.categories.length === 0) { %>
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-pie-chart fs-1 opacity-50 mb-2 d-block"></i>
+                        <p class="small mb-0">No category sales recorded yet.</p>
+                    </div>
+                <% } else { %>
+                    <canvas id="category-chart" height="220"
+                            data-series='<%= JSON.stringify(charts.categories) %>'
+                            aria-label="Doughnut chart of revenue by category"
+                            role="img"></canvas>
+                <% } %>
+            </div>
+        </section>
+    </div>
+</div>
+
+<%# ---------------------------- Bottom Tables Row ---------------------------- %>
+<div class="row g-3">
+    <%# Top Products Panel %>
+    <div class="col-12 col-lg-6">
+        <section class="panel h-100" aria-labelledby="top-products-heading">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 id="top-products-heading" class="panel-title mb-0">Top Performing Products</h2>
+                    <small class="text-secondary-emphasis">Ranked by total revenue generated</small>
+                </div>
+                <a href="/admin/products" class="btn btn-link btn-sm text-decoration-none p-0">View Catalog &rarr;</a>
+            </div>
+
+            <% if (charts.topProducts.length === 0) { %>
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-cart-x fs-2 opacity-50 mb-2 d-block"></i>
+                    <p class="small mb-0">No order data available yet.</p>
+                </div>
             <% } else { %>
-                <table class="table table-sm align-middle mb-0">
-                    <thead><tr><th scope="col">Product</th><th scope="col">SKU</th><th scope="col" class="text-end">Stock</th></tr></thead>
-                    <tbody>
-                        <% lowStock.forEach((product) => { %>
-                            <tr class="<%= product.stock === 0 ? 'table-danger' : '' %>">
-                                <td class="text-truncate" style="max-width:200px"><%= product.name %></td>
-                                <td><code><%= product.sku %></code></td>
-                                <td class="text-end fw-bold"><%= product.stock %></td>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted" style="font-size: 0.72rem; text-transform: uppercase;">
+                                <th scope="col" style="width: 40px;">#</th>
+                                <th scope="col">Product</th>
+                                <th scope="col" class="text-end">Units Sold</th>
+                                <th scope="col" class="text-end">Total Revenue</th>
                             </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <% charts.topProducts.forEach((product, idx) => { %>
+                                <tr>
+                                    <td>
+                                        <span class="badge rounded-circle <%= idx === 0 ? 'bg-warning text-dark' : idx === 1 ? 'bg-secondary text-white' : idx === 2 ? 'bg-bronze text-white' : 'bg-body-secondary text-muted' %>" style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;">
+                                            <%= idx + 1 %>
+                                        </span>
+                                    </td>
+                                    <td class="fw-semibold text-truncate" style="max-width:200px"><%= product.name %></td>
+                                    <td class="text-end"><span class="badge bg-body-tertiary border text-body"><%= product.units %></span></td>
+                                    <td class="text-end fw-bold text-success"><%= formatPrice(product.revenue) %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+        </section>
+    </div>
+
+    <%# Low Stock Inventory Alerts %>
+    <div class="col-12 col-lg-6">
+        <section class="panel h-100" aria-labelledby="low-stock-heading">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 id="low-stock-heading" class="panel-title mb-0">Inventory Health &amp; Stock Alerts</h2>
+                    <small class="text-secondary-emphasis">Products with stock under critical threshold</small>
+                </div>
+                <a href="/admin/inventory" class="btn btn-link btn-sm text-decoration-none p-0">Manage Inventory &rarr;</a>
+            </div>
+
+            <% if (lowStock.length === 0) { %>
+                <div class="text-center text-success py-4">
+                    <i class="bi bi-check-circle fs-2 mb-2 d-block"></i>
+                    <p class="small fw-semibold mb-0">All items are comfortably stocked!</p>
+                </div>
+            <% } else { %>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted" style="font-size: 0.72rem; text-transform: uppercase;">
+                                <th scope="col">Product</th>
+                                <th scope="col">SKU</th>
+                                <th scope="col" class="text-end">Stock</th>
+                                <th scope="col" class="text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% lowStock.forEach((product) => { %>
+                                <tr class="<%= product.stock === 0 ? 'table-danger' : '' %>">
+                                    <td class="fw-semibold text-truncate" style="max-width:180px"><%= product.name %></td>
+                                    <td><code class="small"><%= product.sku %></code></td>
+                                    <td class="text-end fw-bold"><%= product.stock %></td>
+                                    <td class="text-end">
+                                        <% if (product.stock === 0) { %>
+                                            <span class="badge bg-danger text-white">Out of Stock</span>
+                                        <% } else { %>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis">Low (<%= product.stock %>)</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
             <% } %>
         </section>
     </div>
