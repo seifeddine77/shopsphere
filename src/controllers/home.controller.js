@@ -25,12 +25,15 @@ async function index(req, res, next) {
       });
     }
 
-    const [categories, featured, latest] = await Promise.all([
+    const cmsService = require('../services/cms.service');
+    const [categories, featured, latest, sections] = await Promise.all([
       categoryService.listCategories(),
       // Featured: up to 8, highest rated first
       productService.listProducts({ isFeatured: 'true', sort: 'best_rating', limit: '8' }),
       // Latest arrivals
       productService.listProducts({ sort: 'newest', limit: '8' }),
+      // Dynamic CMS Sections
+      cmsService.getActiveSections(),
     ]);
 
     return res.render('home/index', {
@@ -41,6 +44,7 @@ async function index(req, res, next) {
       categories: categories.map((category) => category.toJSON()),
       featuredProducts: featured.products.map((product) => product.toJSON()),
       latestProducts: latest.products.map((product) => product.toJSON()),
+      sections: sections.map((s) => s.toJSON()),
     });
   } catch (error) {
     return next(error);

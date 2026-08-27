@@ -1,0 +1,86 @@
+<%# ---------- ADMIN: CMS Dynamic Pages Manager ----------
+    Expects: pages[] %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-0">CMS Pages</h1>
+        <p class="text-secondary-emphasis small mb-0">Create and manage content pages (About, FAQ, Policies, Terms)</p>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#newPagePanel">
+        <i class="bi bi-plus-lg"></i> New Page
+    </button>
+</div>
+
+<div class="collapse mb-4" id="newPagePanel">
+    <div class="panel">
+        <h2 class="panel-title mb-3">Create CMS Page</h2>
+        <form id="page-create-form" data-endpoint="/api/admin/pages" data-redirect="/admin/pages" novalidate>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="page-title">Page Title *</label>
+                    <input class="form-control" id="page-title" name="title" required placeholder="e.g. Frequently Asked Questions">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="page-seo-title">SEO Title</label>
+                    <input class="form-control" id="page-seo-title" name="seoTitle" placeholder="e.g. FAQ & Help Center | ShopSphere">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="page-summary">Short Summary</label>
+                    <input class="form-control" id="page-summary" name="summary" placeholder="Brief page description">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="page-content">Page Content (HTML/Markdown supported) *</label>
+                    <textarea class="form-control" id="page-content" name="content" rows="8" required placeholder="<h3>Frequently Asked Questions</h3><p>Here you will find answers to common questions...</p>"></textarea>
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary js-submit-form px-4">Create Page</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<% if (pages.length === 0) { %>
+    <div class="empty-state">
+        <i class="bi bi-file-earmark-text empty-state-icon" aria-hidden="true"></i>
+        <p class="mb-0 fw-semibold">No CMS pages yet</p>
+    </div>
+<% } else { %>
+    <div class="table-responsive admin-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">URL / Slug</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Updated</th>
+                    <th scope="col" class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% pages.forEach((p) => { %>
+                    <tr data-page-id="<%= p._id %>">
+                        <td><strong><%= p.title %></strong></td>
+                        <td><code>/p/<%= p.slug %></code></td>
+                        <td>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input js-toggle-field" type="checkbox" role="switch"
+                                       data-endpoint="/api/admin/pages/<%= p._id %>"
+                                       data-field="isActive" <%= p.isActive ? 'checked' : '' %>
+                                       aria-label="Toggle active for <%= p.title %>">
+                            </div>
+                        </td>
+                        <td class="small text-secondary-emphasis"><%= formatDate(p.updatedAt) %></td>
+                        <td class="text-end text-nowrap">
+                            <a href="/p/<%= p.slug %>" target="_blank" class="btn btn-outline-secondary btn-sm" title="View live page"><i class="bi bi-eye"></i></a>
+                            <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
+                                    data-endpoint="/api/admin/pages/<%= p._id %>"
+                                    data-confirm="Delete page '<%= p.title %>'?"
+                                    aria-label="Delete page"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+<% } %>

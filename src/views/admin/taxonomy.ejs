@@ -15,6 +15,17 @@
                     <label class="form-label" for="<%= kind %>-name">Name *</label>
                     <input class="form-control" id="<%= kind %>-name" name="name" required minlength="2">
                 </div>
+                <% if (kind === 'categories') { %>
+                    <div class="mb-3">
+                        <label class="form-label" for="cat-parent">Parent Category <span class="text-secondary-emphasis small">(Optional for subcategories)</span></label>
+                        <select class="form-select" id="cat-parent" name="parent">
+                            <option value="">None (Top-Level Category)</option>
+                            <% items.forEach((cat) => { %>
+                                <option value="<%= cat._id %>"><%= '— '.repeat(cat.level || 0) %><%= cat.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                <% } %>
                 <div class="mb-3">
                     <label class="form-label" for="<%= kind %>-description">Description</label>
                     <textarea class="form-control" id="<%= kind %>-description"
@@ -38,6 +49,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Name</th>
+                            <% if (kind === 'categories') { %><th scope="col">Hierarchy</th><% } %>
                             <th scope="col">Slug</th>
                             <th scope="col">Active</th>
                             <th scope="col" class="text-end">Actions</th>
@@ -47,10 +59,24 @@
                         <% items.forEach((item) => { %>
                             <tr data-row-id="<%= item._id %>">
                                 <td>
-                                    <input class="form-control form-control-sm js-rename-input"
-                                           style="max-width:220px" value="<%= item.name %>"
-                                           aria-label="Rename <%= item.name %>">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <% if (item.level > 0) { %>
+                                            <span class="text-muted ms-<%= item.level * 2 %>">↳</span>
+                                        <% } %>
+                                        <input class="form-control form-control-sm js-rename-input"
+                                               style="max-width:200px" value="<%= item.name %>"
+                                               aria-label="Rename <%= item.name %>">
+                                    </div>
                                 </td>
+                                <% if (kind === 'categories') { %>
+                                    <td>
+                                        <% if (item.parent) { %>
+                                            <span class="badge bg-primary-subtle text-primary-emphasis"><%= item.parent.name || 'Subcategory' %></span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary-subtle text-secondary-emphasis">Root</span>
+                                        <% } %>
+                                    </td>
+                                <% } %>
                                 <td><code><%= item.slug %></code></td>
                                 <td>
                                     <div class="form-check form-switch">

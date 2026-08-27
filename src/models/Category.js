@@ -12,6 +12,15 @@ const categorySchema = new mongoose.Schema(
     slug: { type: String, unique: true, lowercase: true, index: true },
     description: { type: String, trim: true, maxlength: 1000, default: '' },
     image: { type: String, default: '' },
+    parent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
+      index: true,
+    },
+    level: { type: Number, default: 0 },
+    order: { type: Number, default: 0 },
+    attributes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Attribute' }],
     isActive: { type: Boolean, default: true },
   },
   {

@@ -29,6 +29,8 @@ function adminPage(handler) {
   ];
 }
 
+router.get('/p/:slug', pageController.dynamicCmsPage);
+
 router.get('/admin', ...adminPage(pageController.adminDashboard));
 router.get('/admin/dashboard', ...adminPage(pageController.adminDashboard));
 router.get('/admin/products', ...adminPage(pageController.adminProductsPage));
@@ -43,6 +45,9 @@ router.get('/admin/reviews', ...adminPage(pageController.adminModerationPage));
 router.get('/admin/moderation', ...adminPage(pageController.adminModerationPage));
 router.get('/admin/users', ...adminPage(pageController.adminUsersPage));
 router.get('/admin/settings', ...adminPage(pageController.adminSettingsPage));
+router.get('/admin/sections', ...adminPage(pageController.adminSectionsPage));
+router.get('/admin/pages', ...adminPage(pageController.adminPagesPage));
+router.get('/admin/audit-logs', ...adminPage(pageController.adminAuditLogsPage));
 router.get('/admin/orders', requirePageAdmin, pageController.adminOrdersPage);
 
 /* ------------------------------- Profile ---------------------------------- */

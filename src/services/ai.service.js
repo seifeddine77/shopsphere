@@ -484,12 +484,78 @@ async function generateProductCopy({ name, categoryName, keywords, lang = 'en' }
   };
 }
 
+/**
+ * Admin Executive AI Copilot: analyzes live database metrics and provides actionable insights.
+ */
+async function adminCopilot(prompt = '', lang = 'en') {
+  const Order = require('../models/Order');
+  const User = require('../models/User');
+
+  const [totalProducts, lowStockProducts, outOfStockProducts, orders, totalUsers, pendingReviews] = await Promise.all([
+    Product.countDocuments({ isActive: true }),
+    Product.find({ stock: { $gt: 0, $lte: 5 } }).select('name stock price sku').limit(5),
+    Product.find({ stock: 0 }).select('name sku').limit(5),
+    Order.find().sort({ createdAt: -1 }).limit(100),
+    User.countDocuments({ role: 'USER' }),
+    Review.countDocuments({ isApproved: false }),
+  ]);
+
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const pendingOrders = orders.filter((o) => o.orderStatus === 'PENDING').length;
+  const lowerPrompt = prompt.toLowerCase();
+  const detected = detectLanguage(prompt) || lang;
+
+  let reply = '';
+  const isFrench = detected === 'fr';
+  const isArabic = detected === 'ar';
+
+  if (lowerPrompt.includes('stock') || lowerPrompt.includes('inventaire') || lowerPrompt.includes('مخزون')) {
+    if (isFrench) {
+      reply = `📊 **État de l'Inventaire en Direct :**\n- **Produits Actifs** : ${totalProducts}\n- **Ruptures de stock** : ${outOfStockProducts.length}\n- **Stock faible (≤ 5 unités)** : ${lowStockProducts.length}\n\n${lowStockProducts.length ? `⚠️ *Articles à réapprovisionner d'urgence :* ${lowStockProducts.map((p) => `${p.name} (${p.stock} restants)`).join(', ')}` : '✅ Tous les produits ont un stock suffisant.'}`;
+    } else if (isArabic) {
+      reply = `📊 **تقرير المخزون المباشر:**\n- **إجمالي المنتجات النشطة**: ${totalProducts}\n- **المنتجات المنتهية**: ${outOfStockProducts.length}\n- **المنتجات منخفضة المخزون (≤ 5)**: ${lowStockProducts.length}\n\n${lowStockProducts.length ? `⚠️ *تنبيه إعادة طلب المنتجات:* ${lowStockProducts.map((p) => `${p.name} (المتبقي: ${p.stock})`).join('، ')}` : '✅ جميع المنتجات متوفرة بشكل جيد.'}`;
+    } else {
+      reply = `📊 **Live Inventory Insights:**\n- **Active Products**: ${totalProducts}\n- **Out of Stock**: ${outOfStockProducts.length}\n- **Low Stock (≤ 5 units)**: ${lowStockProducts.length}\n\n${lowStockProducts.length ? `⚠️ *Restock Recommended For:* ${lowStockProducts.map((p) => `${p.name} (${p.stock} left)`).join(', ')}` : '✅ All catalog items are comfortably stocked.'}`;
+    }
+  } else if (lowerPrompt.includes('sale') || lowerPrompt.includes('vente') || lowerPrompt.includes('revenue') || lowerPrompt.includes('chiffre') || lowerPrompt.includes('مبيعات') || lowerPrompt.includes('أرباح')) {
+    if (isFrench) {
+      reply = `💰 **Synthèse Financière & Ventes :**\n- **Chiffre d'affaires total** : $${totalRevenue.toFixed(2)}\n- **Nombre total de commandes** : ${orders.length}\n- **Commandes en attente de traitement** : ${pendingOrders}\n- **Panier moyen** : $${orders.length ? (totalRevenue / orders.length).toFixed(2) : '0.00'}\n\n📈 *Recommandation :* Vous avez **${pendingOrders} commande(s) en attente**. Validez-les rapidement dans l'onglet Commandes pour maximiser la satisfaction client.`;
+    } else if (isArabic) {
+      reply = `💰 **الملخص المالي والمبيعات:**\n- **إجمالي الإيرادات**: $${totalRevenue.toFixed(2)}\n- **إجمالي الطلبات**: ${orders.length}\n- **طلبات بانتظار المعالجة**: ${pendingOrders}\n- **متوسط قيمة الطلب**: $${orders.length ? (totalRevenue / orders.length).toFixed(2) : '0.00'}\n\n📈 *توصية:* لديك **${pendingOrders} طلب(ات) جديدة**. يُرجى معالجتها في لوحة الطلبات لتعزيز رضا العملاء.`;
+    } else {
+      reply = `💰 **Revenue & Sales Overview:**\n- **Total Revenue**: $${totalRevenue.toFixed(2)}\n- **Total Orders**: ${orders.length}\n- **Pending Orders**: ${pendingOrders}\n- **Average Order Value (AOV)**: $${orders.length ? (totalRevenue / orders.length).toFixed(2) : '0.00'}\n\n📈 *Actionable Tip:* You have **${pendingOrders} pending order(s)** awaiting fulfillment in your orders tab.`;
+    }
+  } else {
+    if (isFrench) {
+      reply = `👋 Bonjour ! Voici le point d'activité de votre boutique **ShopSphere** :\n\n- 💵 **Chiffre d'Affaires** : $${totalRevenue.toFixed(2)}\n- 📦 **Commandes** : ${orders.length} (dont ${pendingOrders} en attente)\n- 👥 **Clients inscrits** : ${totalUsers}\n- 🏷️ **Produits en ligne** : ${totalProducts}\n- ⭐ **Avis en attente de modération** : ${pendingReviews}\n\n💡 *Vous pouvez me demander :* « Quel est l'état du stock ? », « Résumé des ventes », ou « Quels produits réapprovisionner ? »`;
+    } else if (isArabic) {
+      reply = `👋 مرحباً بك! إليك ملخص نشاط متجرك **ShopSphere**:\n\n- 💵 **إجمالي الإيرادات**: $${totalRevenue.toFixed(2)}\n- 📦 **الطلبات**: ${orders.length} (منها ${pendingOrders} قيد الانتظار)\n- 👥 **العملاء المسجلين**: ${totalUsers}\n- 🏷️ **المنتجات النشطة**: ${totalProducts}\n- ⭐ **تقييمات تنتظر الموافقة**: ${pendingReviews}\n\n💡 *يمكنك أن تسألني:* "ما حالة المخزون؟"، "ملخص المبيعات"، أو "المنتجات التي تحتاج إعادة طلب"`;
+    } else {
+      reply = `👋 Hello! Here is the executive pulse of your **ShopSphere** store:\n\n- 💵 **Total Revenue**: $${totalRevenue.toFixed(2)}\n- 📦 **Orders**: ${orders.length} (${pendingOrders} pending fulfillment)\n- 👥 **Registered Customers**: ${totalUsers}\n- 🏷️ **Active Catalog Products**: ${totalProducts}\n- ⭐ **Reviews Awaiting Moderation**: ${pendingReviews}\n\n💡 *You can ask me:* "Show stock status", "Sales breakdown", or "Which products need restocking?"`;
+    }
+  }
+
+  return {
+    reply,
+    metrics: {
+      totalRevenue,
+      totalOrders: orders.length,
+      pendingOrders,
+      totalUsers,
+      totalProducts,
+      lowStockCount: lowStockProducts.length,
+      pendingReviews,
+    },
+  };
+}
+
 module.exports = {
   chatAdvisor,
   summarizeReviews,
   generateProductCopy,
   extractShoppingFilters,
   detectLanguage,
+  adminCopilot,
 };
 
 

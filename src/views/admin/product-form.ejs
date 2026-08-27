@@ -7,100 +7,148 @@
     <h1 class="h3 fw-bold mb-0"><%= isEdit ? 'Edit product' : 'New product' %></h1>
 </div>
 
-<div class="panel" style="max-width:860px">
+<div class="panel" style="max-width:960px">
     <form id="product-form"
           data-endpoint="<%= isEdit ? `/api/products/${product._id}` : '/api/products' %>"
           data-method="<%= isEdit ? 'PUT' : 'POST' %>"
           data-redirect="/admin/products"
           novalidate>
-        <div class="row g-3">
-            <div class="col-12">
-                <label class="form-label" for="pf-name">Name *</label>
-                <input class="form-control" id="pf-name" name="name" required minlength="2"
-                       value="<%= product ? product.name : '' %>">
-            </div>
-            <div class="col-12">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="form-label mb-0" for="pf-description">Description * <span class="text-secondary-emphasis small">(min 10 chars)</span></label>
-                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 d-flex align-items-center gap-1" id="btn-ai-generate-desc">
-                        <i class="bi bi-stars"></i> Generate with AI
-                    </button>
+
+        <ul class="nav nav-pills mb-4 border-bottom pb-3" id="productFormTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-semibold" id="tab-general-btn" data-bs-toggle="pill" data-bs-target="#tab-general" type="button" role="tab"><i class="bi bi-info-circle me-1"></i> General</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="tab-pricing-btn" data-bs-toggle="pill" data-bs-target="#tab-pricing" type="button" role="tab"><i class="bi bi-currency-dollar me-1"></i> Pricing & Stock</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="tab-media-btn" data-bs-toggle="pill" data-bs-target="#tab-media" type="button" role="tab"><i class="bi bi-images me-1"></i> Media</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="tab-seo-btn" data-bs-toggle="pill" data-bs-target="#tab-seo" type="button" role="tab"><i class="bi bi-search me-1"></i> SEO & Meta</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="productFormTabsContent">
+            <%# --- TAB 1: GENERAL --- %>
+            <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="pf-name">Product Name *</label>
+                        <input class="form-control" id="pf-name" name="name" required minlength="2"
+                               value="<%= product ? product.name : '' %>" placeholder="e.g. Wireless Noise-Cancelling Headphones Pro">
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="form-label mb-0" for="pf-description">Description * <span class="text-secondary-emphasis small">(min 10 chars)</span></label>
+                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 d-flex align-items-center gap-1" id="btn-ai-generate-desc">
+                                <i class="bi bi-stars"></i> Generate with AI
+                            </button>
+                        </div>
+                        <textarea class="form-control" id="pf-description" name="description" rows="4" required
+                                  minlength="10" placeholder="Detailed product specifications, benefits and features..."><%= product ? product.description : '' %></textarea>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="pf-category">Category *</label>
+                        <select class="form-select" id="pf-category" name="category" required>
+                            <option value="">Choose category...</option>
+                            <% categories.forEach((category) => { %>
+                                <option value="<%= category._id %>" <%= product && String(product.category && product.category._id || product.category) === category._id ? 'selected' : '' %>><%= '— '.repeat(category.level || 0) %><%= category.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="pf-brand">Brand *</label>
+                        <select class="form-select" id="pf-brand" name="brand" required>
+                            <option value="">Choose brand...</option>
+                            <% brands.forEach((brand) => { %>
+                                <option value="<%= brand._id %>" <%= product && String(product.brand && product.brand._id || product.brand) === brand._id ? 'selected' : '' %>><%= brand.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-12 d-flex gap-4 pt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="pf-active" name="isActive" <%= !product || product.isActive ? 'checked' : '' %>>
+                            <label class="form-check-label" for="pf-active">Active (visible in store)</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="pf-featured" name="isFeatured" <%= product && product.isFeatured ? 'checked' : '' %>>
+                            <label class="form-check-label" for="pf-featured">Featured on home page</label>
+                        </div>
+                    </div>
                 </div>
-                <textarea class="form-control" id="pf-description" name="description" rows="4" required
-                          minlength="10"><%= product ? product.description : '' %></textarea>
             </div>
-            <div class="col-6 col-md-3">
-                <label class="form-label" for="pf-price">Price *</label>
-                <input type="number" step="0.01" min="0" class="form-control" id="pf-price" name="price" required
-                       value="<%= product ? product.price : '' %>">
-            </div>
-            <div class="col-6 col-md-3">
-                <label class="form-label" for="pf-discount">Discount price</label>
-                <input type="number" step="0.01" min="0" class="form-control" id="pf-discount" name="discountPrice"
-                       value="<%= product && product.discountPrice != null ? product.discountPrice : '' %>"
-                       placeholder="none">
-            </div>
-            <div class="col-6 col-md-3">
-                <label class="form-label" for="pf-stock">Stock *</label>
-                <input type="number" step="1" min="0" class="form-control" id="pf-stock" name="stock" required
-                       value="<%= product ? product.stock : 0 %>">
-            </div>
-            <div class="col-6 col-md-3">
-                <label class="form-label" for="pf-sku">SKU *</label>
-                <input class="form-control" id="pf-sku" name="sku" required <%= isEdit ? 'readonly' : '' %>
-                       value="<%= product ? product.sku : '' %>" placeholder="e.g. SS-001">
-                <% if (isEdit) { %><div class="form-text">SKU cannot be changed.</div><% } %>
-            </div>
-            <div class="col-12 col-md-6">
-                <label class="form-label" for="pf-category">Category *</label>
-                <select class="form-select" id="pf-category" name="category" required>
-                    <option value="">Choose...</option>
-                    <% categories.forEach((category) => { %>
-                        <option value="<%= category._id %>" <%= product && String(product.category && product.category._id || product.category) === category._id ? 'selected' : '' %>><%= category.name %></option>
-                    <% }) %>
-                </select>
-            </div>
-            <div class="col-12 col-md-6">
-                <label class="form-label" for="pf-brand">Brand *</label>
-                <select class="form-select" id="pf-brand" name="brand" required>
-                    <option value="">Choose...</option>
-                    <% brands.forEach((brand) => { %>
-                        <option value="<%= brand._id %>" <%= product && String(product.brand && product.brand._id || product.brand) === brand._id ? 'selected' : '' %>><%= brand.name %></option>
-                    <% }) %>
-                </select>
-            </div>
-            <div class="col-12">
-                <label class="form-label" for="pf-image">Image path/URL</label>
-                <input class="form-control" id="pf-image" name="images"
-                       placeholder="/uploads/products/photo.jpg or /images/products/my-product.svg"
-                       value="<%= product && product.images && product.images[0] ? product.images[0] : '' %>">
-                <div class="d-flex align-items-center gap-3 mt-2">
-                    <%# Upload widget (admin-only endpoint, JPEG/PNG/WEBP <= 2 MB) %>
-                    <label class="btn btn-outline-secondary btn-sm mb-0">
-                        <i class="bi bi-upload me-1"></i>Upload image
-                        <input type="file" id="pf-image-file" accept=".jpg,.jpeg,.png,.webp" hidden>
-                    </label>
-                    <span class="small text-secondary-emphasis js-upload-status" role="status" aria-live="polite"></span>
+
+            <%# --- TAB 2: PRICING & INVENTORY --- %>
+            <div class="tab-pane fade" id="tab-pricing" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-6 col-md-4">
+                        <label class="form-label" for="pf-price">Regular Price ($) *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="pf-price" name="price" required
+                               value="<%= product ? product.price : '' %>">
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label" for="pf-discount">Sale / Discount Price ($)</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="pf-discount" name="discountPrice"
+                               value="<%= product && product.discountPrice != null ? product.discountPrice : '' %>"
+                               placeholder="Optional">
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label" for="pf-stock">Inventory Stock *</label>
+                        <input type="number" step="1" min="0" class="form-control" id="pf-stock" name="stock" required
+                               value="<%= product ? product.stock : 0 %>">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="pf-sku">SKU (Stock Keeping Unit) *</label>
+                        <input class="form-control" id="pf-sku" name="sku" required <%= isEdit ? 'readonly' : '' %>
+                               value="<%= product ? product.sku : '' %>" placeholder="e.g. SS-AUDIO-001">
+                        <% if (isEdit) { %><div class="form-text">SKU cannot be changed once created.</div><% } %>
+                    </div>
                 </div>
-                <img id="pf-image-preview" src="<%= product && product.images && product.images[0] ? product.images[0] : '/images/placeholder.svg' %>"
-                     alt="Product image preview" class="mt-2 rounded-3"
-                     style="width:120px;height:120px;object-fit:cover">
-                <div class="form-text">Paste a path/URL or upload - JPEG, PNG, WEBP up to 2&nbsp;MB.</div>
             </div>
-            <div class="col-12 d-flex gap-4">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="pf-active" name="isActive" <%= !product || product.isActive ? 'checked' : '' %>>
-                    <label class="form-check-label" for="pf-active">Active (visible in store)</label>
+
+            <%# --- TAB 3: MEDIA --- %>
+            <div class="tab-pane fade" id="tab-media" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="pf-image">Main Image URL</label>
+                        <input class="form-control" id="pf-image" name="images"
+                               placeholder="/uploads/products/photo.jpg or /images/products/my-product.svg"
+                               value="<%= product && product.images && product.images[0] ? product.images[0] : '' %>">
+                        <div class="d-flex align-items-center gap-3 mt-2">
+                            <label class="btn btn-outline-secondary btn-sm mb-0">
+                                <i class="bi bi-upload me-1"></i>Upload image
+                                <input type="file" id="pf-image-file" accept=".jpg,.jpeg,.png,.webp" hidden>
+                            </label>
+                            <span class="small text-secondary-emphasis js-upload-status" role="status" aria-live="polite"></span>
+                        </div>
+                        <img id="pf-image-preview" src="<%= product && product.images && product.images[0] ? product.images[0] : '/images/placeholder.svg' %>"
+                             alt="Product image preview" class="mt-2 rounded-3 border"
+                             style="width:140px;height:140px;object-fit:contain;background-color:#f8f9fa;">
+                        <div class="form-text">Supported formats: JPEG, PNG, WEBP up to 2 MB.</div>
+                    </div>
                 </div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="pf-featured" name="isFeatured" <%= product && product.isFeatured ? 'checked' : '' %>>
-                    <label class="form-check-label" for="pf-featured">Featured on home page</label>
+            </div>
+
+            <%# --- TAB 4: SEO & META --- %>
+            <div class="tab-pane fade" id="tab-seo" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="pf-slug">Custom URL Slug</label>
+                        <input class="form-control" id="pf-slug" name="slug" <%= isEdit ? 'readonly' : '' %>
+                               value="<%= product ? product.slug : '' %>" placeholder="auto-generated-from-name">
+                        <div class="form-text">Generated automatically from the product name.</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary mt-4 px-4 js-submit-form">
-            <%= isEdit ? 'Save changes' : 'Create product' %>
-        </button>
+        <hr class="my-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <button type="submit" class="btn btn-primary px-4 js-submit-form">
+                <i class="bi bi-check2-circle me-1"></i> <%= isEdit ? 'Save changes' : 'Create product' %>
+            </button>
+            <a href="/admin/products" class="btn btn-outline-secondary">Cancel</a>
+        </div>
     </form>
 </div>

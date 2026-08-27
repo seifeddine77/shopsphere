@@ -92,6 +92,8 @@ const categoryCreateSchema = Joi.object({
   }),
   description: Joi.string().trim().max(1000).allow('').default(''),
   image: imageRule.allow('').default(''),
+  parent: Joi.string().hex().length(24).allow(null, '').optional(),
+  order: Joi.number().integer().min(0).default(0),
   isActive: Joi.boolean().default(true),
 });
 

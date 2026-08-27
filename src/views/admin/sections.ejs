@@ -1,0 +1,94 @@
+<%# ---------- ADMIN: Visual Homepage Section Builder ----------
+    Expects: sections[] %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-0">Homepage Builder</h1>
+        <p class="text-secondary-emphasis small mb-0">Drag, reorder, and configure storefront sections dynamically</p>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#newSectionPanel">
+        <i class="bi bi-plus-lg"></i> Add Section
+    </button>
+</div>
+
+<div class="collapse mb-4" id="newSectionPanel">
+    <div class="panel">
+        <h2 class="panel-title mb-3">Create Visual Section</h2>
+        <form id="section-create-form" data-endpoint="/api/admin/sections" data-redirect="/admin/sections" novalidate>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="sec-title">Section Title *</label>
+                    <input class="form-control" id="sec-title" name="title" required placeholder="e.g. Flash Deals of the Week">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="sec-subtitle">Subtitle</label>
+                    <input class="form-control" id="sec-subtitle" name="subtitle" placeholder="e.g. Up to 50% discount">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="sec-type">Section Type *</label>
+                    <select class="form-select" id="sec-type" name="type" required>
+                        <option value="HERO">Hero Banner</option>
+                        <option value="FLASH_SALE">Flash Sale Countdown</option>
+                        <option value="PRODUCT_GRID">Product Grid</option>
+                        <option value="PRODUCT_CAROUSEL">Product Carousel</option>
+                        <option value="CATEGORY_GRID">Category Grid</option>
+                        <option value="BRANDS">Brands Wall</option>
+                        <option value="TESTIMONIALS">Customer Reviews Wall</option>
+                        <option value="NEWSLETTER">Newsletter Banner</option>
+                        <option value="BANNER">Custom Banner</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="sec-btn-text">Button Text</label>
+                    <input class="form-control" id="sec-btn-text" name="config.buttonText" placeholder="e.g. Shop Now">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="sec-btn-link">Button Link URL</label>
+                    <input class="form-control" id="sec-btn-link" name="config.buttonLink" placeholder="/products">
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary js-submit-form px-4">Create Section</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<% if (sections.length === 0) { %>
+    <div class="empty-state">
+        <i class="bi bi-layout-text-window empty-state-icon" aria-hidden="true"></i>
+        <p class="mb-0 fw-semibold">No sections configured yet</p>
+    </div>
+<% } else { %>
+    <div class="row g-3">
+        <% sections.forEach((section, index) => { %>
+            <div class="col-12">
+                <div class="panel d-flex flex-wrap align-items-center justify-content-between gap-3 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis fw-bold" style="font-size: 0.9rem;">#<%= index + 1 %></span>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-primary"><%= section.type %></span>
+                                <h6 class="fw-bold mb-0"><%= section.title || 'Untitled Section' %></h6>
+                            </div>
+                            <small class="text-secondary-emphasis"><%= section.subtitle || 'No subtitle configured' %></small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input js-toggle-field" type="checkbox" role="switch"
+                                   data-endpoint="/api/admin/sections/<%= section._id %>"
+                                   data-field="isActive" <%= section.isActive ? 'checked' : '' %>
+                                   aria-label="Toggle active for <%= section.title %>">
+                        </div>
+                        <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
+                                data-endpoint="/api/admin/sections/<%= section._id %>"
+                                data-confirm="Delete this section permanently?"
+                                aria-label="Delete section"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+<% } %>

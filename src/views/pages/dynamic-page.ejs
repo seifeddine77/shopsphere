@@ -1,0 +1,28 @@
+<%# Storefront Dynamic CMS Page Template
+    Expects: page %>
+
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/"><%= t('nav.home', 'Home') %></a></li>
+            <li class="breadcrumb-item active" aria-current="page"><%= page.title %></li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <article class="bg-body-tertiary p-4 p-lg-5 rounded-4 border shadow-sm">
+                <header class="border-bottom pb-4 mb-4">
+                    <h1 class="h2 fw-bold mb-2"><%= page.title %></h1>
+                    <% if (page.summary) { %>
+                        <p class="text-secondary-emphasis lead mb-0"><%= page.summary %></p>
+                    <% } %>
+                </header>
+
+                <div class="cms-page-content" style="line-height: 1.8;">
+                    <%- page.content %>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>

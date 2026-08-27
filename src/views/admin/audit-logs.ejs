@@ -1,0 +1,43 @@
+<%# ---------- ADMIN: Audit Activity Logs ----------
+    Expects: logs[], total %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-0">Audit Logs</h1>
+        <p class="text-secondary-emphasis small mb-0">Security and administrative activity trail (<%= total %> events recorded)</p>
+    </div>
+</div>
+
+<% if (logs.length === 0) { %>
+    <div class="empty-state">
+        <i class="bi bi-shield-check empty-state-icon" aria-hidden="true"></i>
+        <p class="mb-0 fw-semibold">No audit events recorded yet</p>
+    </div>
+<% } else { %>
+    <div class="table-responsive admin-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Administrator</th>
+                    <th scope="col">Action</th>
+                    <th scope="col">Entity</th>
+                    <th scope="col">IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% logs.forEach((log) => { %>
+                    <tr>
+                        <td class="small text-secondary-emphasis text-nowrap"><%= formatDate(log.createdAt) %></td>
+                        <td>
+                            <strong><%= log.user ? `${log.user.firstName} ${log.user.lastName}` : (log.userEmail || 'System') %></strong>
+                        </td>
+                        <td><span class="badge bg-primary-subtle text-primary-emphasis"><%= log.action %></span></td>
+                        <td><code><%= log.entity %> <%= log.entityId ? `#${log.entityId.slice(-6)}` : '' %></code></td>
+                        <td class="small text-muted"><%= log.ip || '127.0.0.1' %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+<% } %>

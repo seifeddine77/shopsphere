@@ -59,10 +59,14 @@ router.put('/settings', validate(updateSettingsSchema), async (req, res, next) =
 
 /* ------------------------------ Attributes -------------------------------- */
 const attributeController = require('../controllers/attribute.controller');
+const cmsController = require('../controllers/cms.controller');
 const {
   attributeCreateSchema,
   attributeUpdateSchema,
 } = require('../validators/admin.validator');
+
+router.get('/global-search', adminController.globalSearch);
+router.get('/audit-logs', adminController.listAuditLogs);
 
 router.get('/attributes', attributeController.list);
 router.get('/attributes/:id', attributeController.getById);
@@ -70,6 +74,20 @@ router.post('/attributes', validate(attributeCreateSchema), attributeController.
 router.put('/attributes/:id', validate(attributeUpdateSchema), attributeController.update);
 router.delete('/attributes/:id', attributeController.remove);
 router.post('/attributes/:id/options', attributeController.addOption);
+
+/* ------------------------------- CMS -------------------------------------- */
+router.get('/sections', cmsController.listSections);
+router.post('/sections', cmsController.createSection);
+router.put('/sections/:id', cmsController.updateSection);
+router.delete('/sections/:id', cmsController.deleteSection);
+
+router.get('/pages', cmsController.listPages);
+router.post('/pages', cmsController.createPage);
+router.put('/pages/:id', cmsController.updatePage);
+router.delete('/pages/:id', cmsController.deletePage);
+
+router.get('/menus/:location', cmsController.getMenu);
+router.put('/menus/:location', cmsController.updateMenu);
 
 module.exports = router;
 

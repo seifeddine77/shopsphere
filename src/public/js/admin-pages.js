@@ -315,4 +315,129 @@
       }
     });
   }
+
+  /* ---------------------- Global Admin Search (Ctrl+K) --------------------- */
+  const searchInput = document.getElementById('admin-global-search-input');
+  const searchResults = document.getElementById('admin-global-search-results');
+  const searchModalEl = document.getElementById('adminGlobalSearchModal');
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      if (searchModalEl && window.bootstrap) {
+        const modal = window.bootstrap.Modal.getOrCreateInstance(searchModalEl);
+        modal.show();
+      }
+    }
+  });
+
+  if (searchModalEl) {
+    searchModalEl.addEventListener('shown.bs.modal', () => {
+      if (searchInput) searchInput.focus();
+    });
+  }
+
+  let searchTimeout = null;
+  if (searchInput && searchResults) {
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      const query = searchInput.value.trim();
+      if (query.length < 2) {
+        searchResults.innerHTML = '<div class="text-center py-4 text-muted"><small>Type at least 2 characters to search.</small></div>';
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        searchResults.innerHTML = '<div class="text-center py-4"><span class="spinner-border spinner-border-sm text-primary"></span> Searching...</div>';
+        try {
+          const res = await window.app.api(`/api/admin/global-search?q=${encodeURIComponent(query)}`);
+          const { products = [], orders = [], users = [], categories = [], coupons = [] } = res.data || {};
+
+          if (!products.length && !orders.length && !users.length && !categories.length && !coupons.length) {
+            searchResults.innerHTML = '<div class="text-center py-4 text-muted">No results found for &ldquo;' + query + '&rdquo;</div>';
+            return;
+          }
+
+          let html = '';
+          if (products.length) {
+            html += '<h6 class="text-uppercase text-muted fw-bold small mb-2 mt-1">Products</h6><ul class="list-group list-group-flush mb-3">';
+            products.forEach((p) => {
+              html += `<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2"><a href="/products/${p.slug}" class="text-decoration-none fw-semibold text-reset">${p.name}</a><span class="badge bg-primary-subtle text-primary-emphasis">$${p.price.toFixed(2)}</span></li>`;
+            });
+            html += '</ul>';
+          }
+
+          if (orders.length) {
+            html += '<h6 class="text-uppercase text-muted fw-bold small mb-2">Orders</h6><ul class="list-group list-group-flush mb-3">';
+            orders.forEach((o) => {
+              html += `<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2"><a href="/orders/${o._id}" class="text-decoration-none fw-semibold text-reset">${o.orderNumber}</a><span class="badge bg-secondary-subtle text-secondary-emphasis">${o.orderStatus} · $${o.total.toFixed(2)}</span></li>`;
+            });
+            html += '</ul>';
+          }
+
+          if (users.length) {
+            html += '<h6 class="text-uppercase text-muted fw-bold small mb-2">Users</h6><ul class="list-group list-group-flush mb-3">';
+            users.forEach((u) => {
+              html += `<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2"><span>${u.firstName} ${u.lastName} <small class="text-muted">(${u.email})</small></span><span class="badge bg-dark">${u.role}</span></li>`;
+            });
+            html += '</ul>';
+          }
+
+          searchResults.innerHTML = html;
+        } catch (err) {
+          searchResults.innerHTML = `<div class="text-danger small py-2">${err.message || 'Search failed'}</div>`;
+        }
+      }, 250);
+    });
+  }
+
+  /* ---------------------- AI Executive Copilot ---------------------------- */
+  const copilotInput = document.getElementById('copilot-input');
+  const copilotSendBtn = document.getElementById('btn-copilot-send');
+  const copilotOutput = document.getElementById('copilot-output');
+
+  const executeCopilot = async (promptText) => {
+    if (!promptText || !copilotOutput) return;
+    copilotOutput.innerHTML += `\n\n<strong class="text-primary">👤 Admin :</strong> ${promptText}\n<em class="text-muted">⏳ Analyse en cours...</em>`;
+    copilotOutput.scrollTop = copilotOutput.scrollHeight;
+    if (copilotSendBtn) copilotSendBtn.disabled = true;
+
+    try {
+      const res = await window.app.api('/api/ai/admin-copilot', {
+        method: 'POST',
+        body: JSON.stringify({ prompt: promptText }),
+      });
+
+      const reply = res?.data?.reply || 'Analyse terminée.';
+      copilotOutput.innerHTML = copilotOutput.innerHTML.replace('<em class="text-muted">⏳ Analyse en cours...</em>', `\n<strong class="text-success">🤖 Copilote IA :</strong>\n${reply}`);
+      copilotOutput.scrollTop = copilotOutput.scrollHeight;
+    } catch (err) {
+      copilotOutput.innerHTML = copilotOutput.innerHTML.replace('<em class="text-muted">⏳ Analyse en cours...</em>', `\n<span class="text-danger">❌ Erreur : ${err.message}</span>`);
+    } finally {
+      if (copilotSendBtn) copilotSendBtn.disabled = false;
+      if (copilotInput) copilotInput.value = '';
+    }
+  };
+
+  if (copilotSendBtn && copilotInput) {
+    copilotSendBtn.addEventListener('click', () => {
+      const text = copilotInput.value.trim();
+      if (text) executeCopilot(text);
+    });
+
+    copilotInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const text = copilotInput.value.trim();
+        if (text) executeCopilot(text);
+      }
+    });
+  }
+
+  document.querySelectorAll('.js-copilot-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const prompt = btn.dataset.prompt;
+      if (prompt) executeCopilot(prompt);
+    });
+  });
 })();

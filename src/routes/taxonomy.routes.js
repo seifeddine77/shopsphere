@@ -13,6 +13,7 @@ const { validate } = require('../middlewares/validation.middleware');
 
 /* --------------------------- Categories ---------------------------------- */
 
+router.get('/categories/tree', taxonomyController.getCategoryTree);
 router.get('/categories', taxonomyController.listCategories);
 router.get('/categories/:identifier', taxonomyController.getCategory);
 

@@ -7,8 +7,9 @@ const { adminOnly } = require('../middlewares/admin.middleware');
 router.post('/chat', aiController.chat);
 router.get('/reviews/:slug', aiController.reviewSummary);
 
-// Admin-only AI copy generation
+// Admin-only AI copy generation & executive copilot
 router.post('/generate-product', protect, adminOnly, aiController.generateProduct);
+router.post('/admin-copilot', protect, adminOnly, aiController.adminCopilot);
 
 module.exports = router;
 

@@ -409,6 +409,81 @@ async function comparePage(req, res, next) {
   }
 }
 
+/**
+ * GET /admin/sections - Visual Homepage Sections Builder
+ */
+async function adminSectionsPage(req, res, next) {
+  try {
+    const cmsService = require('../services/cms.service');
+    const sections = await cmsService.listAllSections();
+
+    return adminRender(req, res, 'admin/sections', {
+      title: 'Homepage Builder',
+      activeNav: 'sections',
+      sections: sections.map((s) => s.toJSON()),
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * GET /admin/pages - CMS Pages Manager
+ */
+async function adminPagesPage(req, res, next) {
+  try {
+    const cmsService = require('../services/cms.service');
+    const pages = await cmsService.listPages({ includeInactive: true });
+
+    return adminRender(req, res, 'admin/pages-cms', {
+      title: 'CMS Pages',
+      activeNav: 'pages',
+      pages: pages.map((p) => p.toJSON()),
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * GET /admin/audit-logs
+ */
+async function adminAuditLogsPage(req, res, next) {
+  try {
+    const auditService = require('../services/audit.service');
+    const { logs, total } = await auditService.listLogs();
+
+    return adminRender(req, res, 'admin/audit-logs', {
+      title: 'Audit Logs',
+      activeNav: 'audit-logs',
+      logs: logs.map((l) => l.toJSON()),
+      total,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * GET /p/:slug - Storefront Dynamic CMS Page
+ */
+async function dynamicCmsPage(req, res, next) {
+  try {
+    const cmsService = require('../services/cms.service');
+    const page = await cmsService.getPageBySlug(req.params.slug);
+
+    return res.render('pages/dynamic-page', {
+      title: page.seoTitle || page.title,
+      description: page.seoDescription || page.summary,
+      stylesheets: [],
+      scripts: [],
+      page: page.toJSON(),
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   catalog,
   productDetails,
@@ -425,5 +500,9 @@ module.exports = {
   adminModerationPage,
   adminUsersPage,
   adminSettingsPage,
+  adminSectionsPage,
+  adminPagesPage,
+  adminAuditLogsPage,
   taxonomyManagerPage,
+  dynamicCmsPage,
 };

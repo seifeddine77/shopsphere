@@ -1,20 +1,25 @@
 <%# ============================================================
-    HOME PAGE - real catalog data.
-    Expects: categories[], featuredProducts[], latestProducts[]
+    HOME PAGE - Dynamic Database-Driven Storefront.
+    Expects: categories[], featuredProducts[], latestProducts[], sections[]
     ============================================================ %>
 
+<% const heroSec = (typeof sections !== 'undefined' && sections ? sections.find(s => s.type === 'HERO' && s.isActive) : null);
+   const flashSec = (typeof sections !== 'undefined' && sections ? sections.find(s => s.type === 'FLASH_SALE' && s.isActive) : null);
+%>
+
 <%# ---------- Hero ---------- %>
+<% if (!heroSec || heroSec.isActive) { %>
 <section class="hero-section text-white" aria-labelledby="hero-heading">
     <div class="container py-5">
         <div class="row align-items-center g-5 py-lg-4">
             <div class="col-12 col-lg-7">
-                <p class="text-uppercase small fw-semibold letter-spacing mb-2 hero-kicker"><%= t('home.hero_kicker', 'New season · New deals') %></p>
-                <h1 id="hero-heading" class="display-4 fw-bold mb-3"><%= t('home.hero_title', "Discover products you'll love") %></h1>
+                <p class="text-uppercase small fw-semibold letter-spacing mb-2 hero-kicker"><%= (heroSec && heroSec.config && heroSec.config.badge) || t('home.hero_kicker', 'New season · New deals') %></p>
+                <h1 id="hero-heading" class="display-4 fw-bold mb-3"><%= (heroSec && heroSec.title) || t('home.hero_title', "Discover products you'll love") %></h1>
                 <p class="lead mb-4 hero-subtitle">
-                    <%= t('home.hero_subtitle', 'Thousands of items, fast delivery and secure checkout - all in one place.') %>
+                    <%= (heroSec && heroSec.subtitle) || t('home.hero_subtitle', 'Thousands of items, fast delivery and secure checkout - all in one place.') %>
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="/products" class="btn btn-light btn-lg px-4 fw-semibold"><%= t('home.start_shopping', 'Start shopping') %></a>
+                    <a href="<%= (heroSec && heroSec.config && heroSec.config.buttonLink) || '/products' %>" class="btn btn-light btn-lg px-4 fw-semibold"><%= (heroSec && heroSec.config && heroSec.config.buttonText) || t('home.start_shopping', 'Start shopping') %></a>
                     <a href="/products?sort=newest" class="btn btn-outline-light btn-lg px-4"><%= t('home.see_whats_new', "See what's new") %></a>
                 </div>
             </div>
@@ -24,6 +29,7 @@
         </div>
     </div>
 </section>
+<% } %>
 
 <%# ---------- Value props ---------- %>
 <section class="container my-5" aria-label="Our guarantees">
@@ -121,19 +127,20 @@
 </section>
 
 <%# ---------- Flash Deals Promo Banner ---------- %>
+<% if (!flashSec || flashSec.isActive) { %>
 <section class="container my-5" aria-label="Limited Time Flash Deals">
     <div class="card border-0 rounded-4 shadow-sm overflow-hidden text-white p-4 p-lg-5"
          style="background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #6366f1 100%);">
         <div class="row align-items-center g-4">
             <div class="col-12 col-lg-7">
                 <span class="badge bg-warning text-dark fw-bold px-3 py-2 text-uppercase mb-3">
-                    <i class="bi bi-lightning-charge-fill me-1"></i><%= t('home.flash_sale', 'Limited Time Flash Sale') %>
+                    <i class="bi bi-lightning-charge-fill me-1"></i><%= (flashSec && flashSec.config && flashSec.config.discountText) || t('home.flash_sale', 'Limited Time Flash Sale') %>
                 </span>
-                <h2 class="display-6 fw-bold mb-2"><%= t('home.flash_title', 'Up to 50% Off On Electronics & Essentials') %></h2>
-                <p class="lead text-white-50 mb-4"><%= t('home.flash_desc', 'Grab top-tier noise-cancelling audio, modern tech, and premium accessories before stocks run out.') %></p>
+                <h2 class="display-6 fw-bold mb-2"><%= (flashSec && flashSec.title) || t('home.flash_title', 'Up to 50% Off On Electronics & Essentials') %></h2>
+                <p class="lead text-white-50 mb-4"><%= (flashSec && flashSec.subtitle) || t('home.flash_desc', 'Grab top-tier noise-cancelling audio, modern tech, and premium accessories before stocks run out.') %></p>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="/products?sort=popular" class="btn btn-warning text-dark fw-bold px-4 py-2">
-                        <%= t('home.shop_deals', 'Claim Deals Now') %> &rarr;
+                    <a href="<%= (flashSec && flashSec.config && flashSec.config.buttonLink) || '/products?isFeatured=true' %>" class="btn btn-warning text-dark fw-bold px-4 py-2">
+                        <%= (flashSec && flashSec.config && flashSec.config.buttonText) || t('home.shop_deals', 'Claim Deals Now') %> &rarr;
                     </a>
                 </div>
             </div>
@@ -161,6 +168,7 @@
         </div>
     </div>
 </section>
+<% } %>
 
 <%# ---------- Customer Reviews & Social Proof Wall ---------- %>
 <section class="container my-5 py-3" aria-labelledby="testimonials-heading">

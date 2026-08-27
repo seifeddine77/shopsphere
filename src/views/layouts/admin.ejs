@@ -31,6 +31,8 @@
             <li><a href="/admin/brands" class="<%= typeof activeNav !== 'undefined' && activeNav === 'brands' ? 'active' : '' %>"><i class="bi bi-award me-2"></i>Brands</a></li>
             <li><a href="/admin/inventory" class="<%= typeof activeNav !== 'undefined' && activeNav === 'inventory' ? 'active' : '' %>"><i class="bi bi-clipboard-data me-2"></i>Inventory</a></li>
             <li><a href="/admin/orders" class="<%= typeof activeNav !== 'undefined' && activeNav === 'orders' ? 'active' : '' %>"><i class="bi bi-receipt me-2"></i>Orders</a></li>
+            <li><a href="/admin/sections" class="<%= typeof activeNav !== 'undefined' && activeNav === 'sections' ? 'active' : '' %>"><i class="bi bi-layout-text-window me-2"></i>Homepage Builder</a></li>
+            <li><a href="/admin/pages" class="<%= typeof activeNav !== 'undefined' && activeNav === 'pages' ? 'active' : '' %>"><i class="bi bi-file-earmark-text me-2"></i>CMS Pages</a></li>
             <li><a href="/admin/coupons" class="<%= typeof activeNav !== 'undefined' && activeNav === 'coupons' ? 'active' : '' %>"><i class="bi bi-ticket-perforated me-2"></i>Coupons</a></li>
             <li><a href="/admin/reviews" class="<%= typeof activeNav !== 'undefined' && activeNav === 'reviews' ? 'active' : '' %>">
                 <i class="bi bi-star-half me-2"></i>Reviews
@@ -39,6 +41,7 @@
                 <% } %>
             </a></li>
             <li><a href="/admin/users" class="<%= typeof activeNav !== 'undefined' && activeNav === 'users' ? 'active' : '' %>"><i class="bi bi-people me-2"></i>Users</a></li>
+            <li><a href="/admin/audit-logs" class="<%= typeof activeNav !== 'undefined' && activeNav === 'audit-logs' ? 'active' : '' %>"><i class="bi bi-shield-check me-2"></i>Audit Logs</a></li>
             <li><a href="/admin/settings" class="<%= typeof activeNav !== 'undefined' && activeNav === 'settings' ? 'active' : '' %>"><i class="bi bi-gear me-2"></i>Settings</a></li>
         </ul>
 
@@ -52,12 +55,82 @@
 
     <%# ------------------------------ Content ------------------------------- %>
     <div class="admin-content flex-grow-1 d-flex flex-column min-vh-100">
+        <%# Top Control Bar %>
+        <header class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-body-tertiary">
+            <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#adminGlobalSearchModal">
+                <i class="bi bi-search"></i>
+                <span class="d-none d-md-inline text-muted">Search products, orders, users...</span>
+                <kbd class="bg-secondary-subtle text-secondary-emphasis border px-1 py-0 rounded" style="font-size: 0.75rem;">Ctrl+K</kbd>
+            </button>
+
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#adminCopilotModal">
+                    <i class="bi bi-stars text-primary"></i> <span class="d-none d-sm-inline fw-semibold">AI Copilot</span>
+                </button>
+                <a href="/admin/products/new" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
+                    <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline">New Product</span>
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-secondary js-theme-toggle" aria-label="Toggle theme">
+                    <i class="bi bi-moon-stars"></i>
+                </button>
+            </div>
+        </header>
+
         <main class="flex-grow-1 p-3 p-lg-4">
             <%- body %>
         </main>
         <footer class="text-center small text-secondary-emphasis py-3 border-top">
             ShopSphere administration · built with Node.js &amp; Express
         </footer>
+    </div>
+
+    <%# Global Command Palette Modal (Ctrl+K) %>
+    <div class="modal fade" id="adminGlobalSearchModal" tabindex="-1" aria-labelledby="adminGlobalSearchLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-bottom p-3">
+                    <div class="input-group input-group-lg border-0">
+                        <span class="input-group-text bg-transparent border-0"><i class="bi bi-search fs-4 text-primary"></i></span>
+                        <input type="text" class="form-control border-0 shadow-none ps-0" id="admin-global-search-input" placeholder="Type to search products, orders, customers..." autocomplete="off">
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3" id="admin-global-search-results" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-keyboard fs-3 d-block mb-1"></i>
+                        <small>Type at least 2 characters to search across products, orders, categories, and users.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%# AI Executive Copilot Modal %>
+    <div class="modal fade" id="adminCopilotModal" tabindex="-1" aria-labelledby="adminCopilotLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-bottom p-3 bg-body-tertiary">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="adminCopilotLabel">
+                        <i class="bi bi-stars text-primary"></i> Executive AI Copilot
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="copilot-conversation mb-3 p-3 bg-body-tertiary rounded-3 border" id="copilot-output" style="min-height: 180px; max-height: 350px; overflow-y: auto; white-space: pre-line; line-height: 1.6;">
+                        <span class="text-muted">👋 Bonjour ! Demandez-moi n'importe quelle analyse sur vos ventes, votre stock, ou vos commandes en temps réel.</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary js-copilot-preset" data-prompt="Quel est l'état du stock et des ruptures ?">📦 État du Stock</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary js-copilot-preset" data-prompt="Synthèse des ventes et du chiffre d'affaires">💰 Synthèse Financière</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary js-copilot-preset" data-prompt="Quelles sont les commandes en attente ?">📑 Commandes en Attente</button>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="copilot-input" placeholder="Posez une question à votre copilote IA...">
+                        <button class="btn btn-primary" id="btn-copilot-send"><i class="bi bi-send-fill me-1"></i> Analyser</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="flash-container"

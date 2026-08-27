@@ -176,6 +176,64 @@ async function exportOrders(req, res, next) {
   }
 }
 
+/**
+ * GET /api/admin/global-search?q= - global search for products, orders, users, coupons
+ */
+async function globalSearch(req, res, next) {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (!q || q.length < 2) {
+      return sendSuccess(res, { data: { results: [] }, message: 'Search term too short' });
+    }
+
+    const Product = require('../models/Product');
+    const Order = require('../models/Order');
+    const User = require('../models/User');
+    const Category = require('../models/Category');
+    const Coupon = require('../models/Coupon');
+
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+
+    const [products, orders, users, categories, coupons] = await Promise.all([
+      Product.find({ $or: [{ name: regex }, { sku: regex }] }).select('name sku slug price images').limit(5),
+      Order.find({ $or: [{ orderNumber: regex }, { trackingNumber: regex }, { guestEmail: regex }] }).select('orderNumber total orderStatus createdAt').limit(5),
+      User.find({ $or: [{ firstName: regex }, { lastName: regex }, { email: regex }] }).select('firstName lastName email role isActive').limit(5),
+      Category.find({ name: regex }).select('name slug').limit(5),
+      Coupon.find({ code: regex }).select('code discountType discountValue isActive').limit(5),
+    ]);
+
+    return sendSuccess(res, {
+      data: {
+        products,
+        orders,
+        users,
+        categories,
+        coupons,
+      },
+      message: 'Global search results',
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * GET /api/admin/audit-logs
+ */
+async function listAuditLogs(req, res, next) {
+  try {
+    const auditService = require('../services/audit.service');
+    const { logs, total } = await auditService.listLogs(req.query);
+    return sendSuccess(res, {
+      data: { logs },
+      total,
+      message: 'Audit logs retrieved',
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   dashboard,
   listOrders,
@@ -187,4 +245,6 @@ module.exports = {
   listCoupons,
   createCoupon,
   deleteCoupon,
+  globalSearch,
+  listAuditLogs,
 };

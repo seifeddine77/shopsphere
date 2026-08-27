@@ -50,9 +50,27 @@ async function generateProduct(req, res, next) {
   }
 }
 
+/**
+ * POST /api/ai/admin-copilot - Admin Executive Intelligence Assistant
+ */
+async function adminCopilot(req, res, next) {
+  try {
+    const { prompt, lang } = req.body || {};
+    const effectiveLang = lang || req.lang || req.query.lang || (req.cookies && req.cookies.lang) || 'en';
+    const result = await aiService.adminCopilot(prompt, effectiveLang);
+    return sendSuccess(res, {
+      message: 'Admin insights generated',
+      data: result,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   chat,
   reviewSummary,
   generateProduct,
+  adminCopilot,
 };
 

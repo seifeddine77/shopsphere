@@ -7,8 +7,18 @@ const { sendSuccess } = require('../utils/response');
 async function listCategories(req, res, next) {
   try {
     const includeInactive = req.user?.role === 'ADMIN' && req.query.includeInactive === 'true';
-    const categories = await categoryService.listCategories({ includeInactive });
+    const categories = await categoryService.listCategories({ includeInactive, parent: req.query.parent });
     return sendSuccess(res, { data: { categories }, message: 'Categories retrieved' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function getCategoryTree(req, res, next) {
+  try {
+    const includeInactive = req.user?.role === 'ADMIN' && req.query.includeInactive === 'true';
+    const tree = await categoryService.getCategoryTree({ includeInactive });
+    return sendSuccess(res, { data: { tree }, message: 'Category tree retrieved' });
   } catch (error) {
     return next(error);
   }
@@ -100,6 +110,7 @@ async function deleteBrand(req, res, next) {
 
 module.exports = {
   listCategories,
+  getCategoryTree,
   getCategory,
   createCategory,
   updateCategory,
