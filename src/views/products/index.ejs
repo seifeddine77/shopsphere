@@ -1,156 +1,376 @@
 <%# ---------- Product catalog (/products) ----------
-    Expects: products[], pagination, categories[], brands[],
+    Expects: products[], pagination, categories[], brands[], facetCounts,
              current (req.query snapshot), baseQuery (querystring w/o page) %>
+
+<%
+  const currentCategories = current.category
+    ? (Array.isArray(current.category) ? current.category : String(current.category).split(',').map((s) => s.trim().toLowerCase()).filter(Boolean))
+    : [];
+
+  const currentBrands = current.brand
+    ? (Array.isArray(current.brand) ? current.brand : String(current.brand).split(',').map((s) => s.trim().toLowerCase()).filter(Boolean))
+    : [];
+
+  const activeFilters = [];
+
+  currentCategories.forEach((catSlug) => {
+    const catObj = categories.find((c) => c.slug === catSlug);
+    activeFilters.push({
+      key: 'category',
+      val: catSlug,
+      label: `Category: ${catObj ? catObj.name : catSlug}`,
+    });
+  });
+
+  currentBrands.forEach((brandSlug) => {
+    const brandObj = brands.find((b) => b.slug === brandSlug);
+    activeFilters.push({
+      key: 'brand',
+      val: brandSlug,
+      label: `Brand: ${brandObj ? brandObj.name : brandSlug}`,
+    });
+  });
+
+  if (current.minPrice) {
+    activeFilters.push({ key: 'minPrice', val: current.minPrice, label: `Min: $${current.minPrice}` });
+  }
+  if (current.maxPrice) {
+    activeFilters.push({ key: 'maxPrice', val: current.maxPrice, label: `Max: $${current.maxPrice}` });
+  }
+  if (current.minRating) {
+    activeFilters.push({ key: 'minRating', val: current.minRating, label: `Rating: ${current.minRating}★+` });
+  }
+  if (current.inStock === 'true') {
+    activeFilters.push({ key: 'inStock', val: 'true', label: 'In stock only' });
+  }
+  if (current.q) {
+    activeFilters.push({ key: 'q', val: current.q, label: `Search: "${current.q}"` });
+  }
+%>
 
 <div class="container py-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb small">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <% if (current.category) { %>
-                <li class="breadcrumb-item"><a href="/products">Shop</a></li>
-                <li class="breadcrumb-item active" aria-current="page"><%= current.category %></li>
+            <li class="breadcrumb-item"><a href="/"><%= t('nav.home', 'Home') %></a></li>
+            <% if (currentCategories.length === 1) { %>
+                <li class="breadcrumb-item"><a href="/products"><%= t('nav.shop', 'Shop') %></a></li>
+                <li class="breadcrumb-item active" aria-current="page"><%= categories.find((c) => c.slug === currentCategories[0])?.name || currentCategories[0] %></li>
             <% } else { %>
-                <li class="breadcrumb-item active" aria-current="page">Shop</li>
+                <li class="breadcrumb-item active" aria-current="page"><%= t('nav.shop', 'Shop') %></li>
             <% } %>
         </ol>
     </nav>
 
-    <h1 class="h3 fw-bold mb-1">
-        <% if (current.q) { %>Results for &ldquo;<%= current.q %>&rdquo;
-        <% } else if (current.category) { %><%= categories.find((c) => c.slug === current.category)?.name || current.category %>
-        <% } else { %>All products<% } %>
-    </h1>
-    <p class="text-secondary-emphasis small mb-4">
-        <%= pagination.totalItems %> product<%= pagination.totalItems === 1 ? '' : 's' %> found
-    </p>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <% if (current.q) { %><%= t('catalog.results_for', 'Results for') %> &ldquo;<%= current.q %>&rdquo;
+                <% } else if (currentCategories.length === 1) { %><%= categories.find((c) => c.slug === currentCategories[0])?.name || currentCategories[0] %>
+                <% } else { %><%= t('catalog.title', 'All Products') %><% } %>
+            </h1>
+            <p class="text-secondary-emphasis small mb-0">
+                <%= pagination.totalItems %> <%= pagination.totalItems === 1 ? t('catalog.products_found', 'product found') : t('catalog.products_found', 'products found') %>
+            </p>
+        </div>
 
-    <form method="get" action="/products" id="catalog-filters" aria-label="Product filters">
-        <%# Preserve the search term across filter submissions %>
-        <% if (current.q) { %><input type="hidden" name="q" value="<%= current.q %>"><% } %>
+        <%# Mobile Filter Trigger Button %>
+        <div class="d-lg-none">
+            <button type="button" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm"
+                    data-bs-toggle="offcanvas" data-bs-target="#mobileFilterDrawer" aria-controls="mobileFilterDrawer">
+                <i class="bi bi-sliders"></i>
+                <span class="fw-semibold"><%= t('catalog.filters', 'Filters') %> <%= activeFilters.length > 0 ? `(${activeFilters.length})` : '' %></span>
+            </button>
+        </div>
+    </div>
 
-        <div class="row g-4">
-            <%# ------------------------- Sidebar ------------------------- %>
-            <aside class="col-12 col-lg-3">
-                <div class="filter-panel">
-                    <h2 class="filter-heading">Category</h2>
-                    <ul class="filter-list list-unstyled">
-                        <li>
-                            <label class="filter-option">
-                                <input type="radio" name="category" value=""
-                                       <%= !current.category ? 'checked' : '' %>>
-                                <span>All categories</span>
+    <%# Active Filter Badges Bar %>
+    <% if (activeFilters.length > 0) { %>
+        <div class="active-filters-bar d-flex flex-wrap align-items-center gap-2 p-2 px-3 mb-4 rounded-3 bg-body-tertiary border shadow-sm">
+            <span class="small fw-bold text-secondary-emphasis me-1"><i class="bi bi-funnel-fill text-primary me-1"></i><%= t('catalog.active_filters', 'Active filters') %>:</span>
+            <% activeFilters.forEach((f) => { %>
+                <button type="button" class="btn btn-sm btn-light border rounded-pill d-flex align-items-center gap-1 py-1 px-2 js-remove-filter"
+                        data-key="<%= f.key %>" data-val="<%= f.val %>" style="font-size: 0.8rem;">
+                    <span><%= f.label %></span>
+                    <i class="bi bi-x-circle-fill text-muted hover-danger fs-6 ms-1"></i>
+                </button>
+            <% }) %>
+            <a href="/products" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill ms-auto" style="font-size: 0.75rem;">
+                <i class="bi bi-trash me-1"></i><%= t('catalog.clear_all', 'Clear all') %>
+            </a>
+        </div>
+    <% } %>
+
+    <div class="row g-4">
+        <%# ------------------------- Desktop Sidebar ------------------------- %>
+        <aside class="col-lg-3 d-none d-lg-block">
+            <form method="get" action="/products" id="catalog-filters-desktop" aria-label="Product filters">
+                <% if (current.q) { %><input type="hidden" name="q" value="<%= current.q %>"><% } %>
+                <% if (current.sort) { %><input type="hidden" name="sort" value="<%= current.sort %>"><% } %>
+
+                <%# Category Panel %>
+                <div class="filter-panel mb-3 p-3 bg-body-tertiary rounded-3 border">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h2 class="filter-heading h6 fw-bold mb-0 text-uppercase letter-spacing text-secondary-emphasis"><%= t('catalog.categories', 'Categories') %></h2>
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.7rem;"><%= categories.length %></span>
+                    </div>
+                    <div class="filter-list d-flex flex-column gap-1 max-h-200 overflow-y-auto pe-1">
+                        <% categories.forEach((category) => { 
+                            const isChecked = currentCategories.includes(category.slug);
+                            const count = (facetCounts && facetCounts.categoryCounts && facetCounts.categoryCounts[category._id]) || 0;
+                        %>
+                            <label class="filter-option d-flex align-items-center justify-content-between p-1 rounded hover-bg cursor-pointer">
+                                <span class="d-flex align-items-center gap-2">
+                                    <input type="checkbox" name="category" value="<%= category.slug %>"
+                                           class="form-check-input mt-0 js-filter-checkbox"
+                                           <%= isChecked ? 'checked' : '' %>>
+                                    <span class="small <%= isChecked ? 'fw-bold text-primary' : 'text-body' %>"><%= category.name %></span>
+                                </span>
+                                <span class="badge bg-body border text-muted" style="font-size: 0.7rem;"><%= count %></span>
                             </label>
-                        </li>
-                        <% categories.forEach((category) => { %>
-                            <li>
-                                <label class="filter-option">
-                                    <input type="radio" name="category" value="<%= category.slug %>"
-                                           <%= current.category === category.slug ? 'checked' : '' %>>
-                                    <span><%= category.name %></span>
-                                </label>
-                            </li>
                         <% }) %>
-                    </ul>
-                </div>
-
-                <div class="filter-panel">
-                    <h2 class="filter-heading">Brand</h2>
-                    <ul class="filter-list list-unstyled">
-                        <li>
-                            <label class="filter-option">
-                                <input type="radio" name="brand" value=""
-                                       <%= !current.brand ? 'checked' : '' %>>
-                                <span>All brands</span>
-                            </label>
-                        </li>
-                        <% brands.forEach((brand) => { %>
-                            <li>
-                                <label class="filter-option">
-                                    <input type="radio" name="brand" value="<%= brand.slug %>"
-                                           <%= current.brand === brand.slug ? 'checked' : '' %>>
-                                    <span><%= brand.name %></span>
-                                </label>
-                            </li>
-                        <% }) %>
-                    </ul>
-                </div>
-
-                <div class="filter-panel">
-                    <h2 class="filter-heading">Price</h2>
-                    <div class="d-flex gap-2 align-items-center">
-                        <label class="visually-hidden" for="filter-min-price">Minimum price</label>
-                        <input type="number" step="0.01" min="0" class="form-control form-control-sm"
-                               id="filter-min-price" name="minPrice" placeholder="Min"
-                               value="<%= current.minPrice || '' %>">
-                        <span class="text-secondary-emphasis">&ndash;</span>
-                        <label class="visually-hidden" for="filter-max-price">Maximum price</label>
-                        <input type="number" step="0.01" min="0" class="form-control form-control-sm"
-                               id="filter-max-price" name="maxPrice" placeholder="Max"
-                               value="<%= current.maxPrice || '' %>">
                     </div>
                 </div>
 
-                <div class="filter-panel">
-                    <h2 class="filter-heading">Rating</h2>
-                    <label class="visually-hidden" for="filter-min-rating">Minimum rating</label>
-                    <select id="filter-min-rating" name="minRating" class="form-select form-select-sm">
-                        <option value="">Any rating</option>
-                        <option value="3" <%= current.minRating === '3' ? 'selected' : '' %>>3+ stars</option>
-                        <option value="4" <%= current.minRating === '4' ? 'selected' : '' %>>4+ stars</option>
-                        <option value="4.5" <%= current.minRating === '4.5' ? 'selected' : '' %>>4.5+ stars</option>
+                <%# Brand Panel %>
+                <div class="filter-panel mb-3 p-3 bg-body-tertiary rounded-3 border">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h2 class="filter-heading h6 fw-bold mb-0 text-uppercase letter-spacing text-secondary-emphasis"><%= t('catalog.brands', 'Brands') %></h2>
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.7rem;"><%= brands.length %></span>
+                    </div>
+                    <% if (brands.length > 5) { %>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text bg-body"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control js-brand-search" placeholder="<%= t('catalog.search_brand', 'Search brand...') %>" aria-label="Search brand">
+                        </div>
+                    <% } %>
+                    <div class="filter-list d-flex flex-column gap-1 max-h-200 overflow-y-auto pe-1 brand-list-container">
+                        <% brands.forEach((brand) => { 
+                            const isChecked = currentBrands.includes(brand.slug);
+                            const count = (facetCounts && facetCounts.brandCounts && facetCounts.brandCounts[brand._id]) || 0;
+                        %>
+                            <label class="filter-option d-flex align-items-center justify-content-between p-1 rounded hover-bg cursor-pointer brand-item" data-name="<%= brand.name.toLowerCase() %>">
+                                <span class="d-flex align-items-center gap-2">
+                                    <input type="checkbox" name="brand" value="<%= brand.slug %>"
+                                           class="form-check-input mt-0 js-filter-checkbox"
+                                           <%= isChecked ? 'checked' : '' %>>
+                                    <span class="small <%= isChecked ? 'fw-bold text-primary' : 'text-body' %>"><%= brand.name %></span>
+                                </span>
+                                <span class="badge bg-body border text-muted" style="font-size: 0.7rem;"><%= count %></span>
+                            </label>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <%# Price Range Slider & Presets %>
+                <div class="filter-panel mb-3 p-3 bg-body-tertiary rounded-3 border">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h2 class="filter-heading h6 fw-bold mb-0 text-uppercase letter-spacing text-secondary-emphasis"><%= t('catalog.price_range', 'Price Range') %></h2>
+                        <span class="badge bg-primary-subtle text-primary-emphasis fw-bold js-slider-price-label">
+                            $<%= current.minPrice || 0 %> &ndash; $<%= current.maxPrice || 500 %>
+                        </span>
+                    </div>
+
+                    <%# Interactive Dual Slider Bar %>
+                    <div class="price-slider-wrapper position-relative my-3" data-min="0" data-max="500">
+                        <div class="price-slider-track bg-secondary-subtle rounded-pill position-absolute w-100" style="height: 6px; top: 50%; transform: translateY(-50%);"></div>
+                        <div class="price-slider-highlight bg-primary rounded-pill position-absolute" style="height: 6px; top: 50%; transform: translateY(-50%);"></div>
+                        <input type="range" class="price-slider-input price-slider-min" min="0" max="500" step="5" value="<%= current.minPrice || 0 %>" aria-label="Minimum price slider">
+                        <input type="range" class="price-slider-input price-slider-max" min="0" max="500" step="5" value="<%= current.maxPrice || 500 %>" aria-label="Maximum price slider">
+                    </div>
+                    
+                    <div class="d-flex flex-wrap gap-1 mb-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 js-price-preset" data-min="0" data-max="25" style="font-size: 0.75rem;">&lt; $25</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 js-price-preset" data-min="25" data-max="50" style="font-size: 0.75rem;">$25&ndash;$50</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 js-price-preset" data-min="50" data-max="100" style="font-size: 0.75rem;">$50&ndash;$100</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 js-price-preset" data-min="100" data-max="500" style="font-size: 0.75rem;">$100+</button>
+                    </div>
+
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-body text-muted">$</span>
+                            <input type="number" step="1" min="0" max="500" class="form-control form-control-sm js-min-price-input"
+                                   name="minPrice" placeholder="<%= t('catalog.min_price', 'Min') %>"
+                                   value="<%= current.minPrice || '' %>" aria-label="Minimum price">
+                        </div>
+                        <span class="text-secondary-emphasis">&ndash;</span>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-body text-muted">$</span>
+                            <input type="number" step="1" min="0" max="500" class="form-control form-control-sm js-max-price-input"
+                                   name="maxPrice" placeholder="<%= t('catalog.max_price', 'Max') %>"
+                                   value="<%= current.maxPrice || '' %>" aria-label="Maximum price">
+                        </div>
+                    </div>
+                </div>
+
+                <%# Customer Rating %>
+                <div class="filter-panel mb-3 p-3 bg-body-tertiary rounded-3 border">
+                    <h2 class="filter-heading h6 fw-bold mb-2 text-uppercase letter-spacing text-secondary-emphasis"><%= t('catalog.customer_rating', 'Customer Rating') %></h2>
+                    <select name="minRating" class="form-select form-select-sm" aria-label="Minimum rating">
+                        <option value=""><%= t('catalog.any_rating', 'Any rating') %></option>
+                        <option value="4.5" <%= current.minRating === '4.5' ? 'selected' : '' %>>⭐ 4.5+ <%= t('catalog.stars_and_up', 'stars & up') %></option>
+                        <option value="4" <%= current.minRating === '4' ? 'selected' : '' %>>⭐ 4.0+ <%= t('catalog.stars_and_up', 'stars & up') %></option>
+                        <option value="3" <%= current.minRating === '3' ? 'selected' : '' %>>⭐ 3.0+ <%= t('catalog.stars_and_up', 'stars & up') %></option>
                     </select>
                 </div>
 
-                <div class="filter-panel">
-                    <label class="filter-option">
-                        <input type="checkbox" name="inStock" value="true"
+                <%# Stock Availability %>
+                <div class="filter-panel mb-3 p-3 bg-body-tertiary rounded-3 border">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="stockSwitch" name="inStock" value="true"
                                <%= current.inStock === 'true' ? 'checked' : '' %>>
-                        <span>In stock only</span>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100">Apply filters</button>
-                <a href="/products" class="btn btn-link btn-sm w-100 mt-2 text-decoration-none">Reset all</a>
-            </aside>
-
-            <%# ------------------------- Results ------------------------- %>
-            <section class="col-12 col-lg-9" aria-label="Product results">
-                <div class="d-flex justify-content-between align-items-center mb-3 catalog-toolbar">
-                    <p class="small text-secondary-emphasis mb-0">
-                        Page <%= pagination.currentPage %> of <%= pagination.totalPages %>
-                    </p>
-                    <div class="d-flex align-items-center gap-2">
-                        <label for="sort-select" class="small text-secondary-emphasis mb-0">Sort by</label>
-                        <select id="sort-select" name="sort" class="form-select form-select-sm w-auto js-auto-submit">
-                            <option value="" <%= !current.sort ? 'selected' : '' %>>Newest</option>
-                            <option value="price_asc" <%= current.sort === 'price_asc' ? 'selected' : '' %>>Price: low to high</option>
-                            <option value="price_desc" <%= current.sort === 'price_desc' ? 'selected' : '' %>>Price: high to low</option>
-                            <option value="best_rating" <%= current.sort === 'best_rating' ? 'selected' : '' %>>Best rated</option>
-                            <option value="popular" <%= current.sort === 'popular' ? 'selected' : '' %>>Most popular</option>
-                            <option value="oldest" <%= current.sort === 'oldest' ? 'selected' : '' %>>Oldest</option>
-                        </select>
+                        <label class="form-check-label fw-semibold small cursor-pointer" for="stockSwitch"><%= t('catalog.in_stock_only', 'In stock items only') %></label>
                     </div>
                 </div>
 
-                <% if (products.length === 0) { %>
-                    <div class="empty-state">
-                        <i class="bi bi-search empty-state-icon" aria-hidden="true"></i>
-                        <p class="mb-1 fw-semibold">No products match your criteria</p>
-                        <p class="small text-secondary-emphasis">Try adjusting the filters or search term.</p>
-                        <a href="/products" class="btn btn-outline-primary btn-sm">Clear everything</a>
-                    </div>
-                <% } else { %>
-                    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
-                        <% products.forEach((product) => { %>
-                            <div class="col">
-                                <%- include('../partials/product-card', { product }) %>
-                            </div>
-                        <% }) %>
-                    </div>
-                <% } %>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-funnel-fill me-1"></i><%= t('catalog.apply_filters', 'Apply Filters') %></button>
+                    <a href="/products" class="btn btn-outline-secondary btn-sm"><%= t('catalog.reset_filters', 'Reset All Filters') %></a>
+                </div>
+            </form>
+        </aside>
 
-                <%- include('../partials/pagination', { pagination, baseQuery }) %>
-            </section>
-        </div>
-    </form>
+        <%# ------------------------- Results Section ------------------------- %>
+        <section class="col-12 col-lg-9" aria-label="Product results">
+            <div class="d-flex justify-content-between align-items-center mb-3 catalog-toolbar p-2 rounded-3 bg-body-tertiary border shadow-sm">
+                <p class="small text-secondary-emphasis mb-0 ps-2">
+                    Showing <strong><%= products.length %></strong> of <strong><%= pagination.totalItems %></strong> results
+                </p>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Layout view switcher">
+                        <button type="button" class="btn btn-outline-secondary active" id="btn-grid-view" title="Grid view" aria-label="Grid view">
+                            <i class="bi bi-grid-3x3-gap-fill"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btn-list-view" title="List view" aria-label="List view">
+                            <i class="bi bi-list-ul"></i>
+                        </button>
+                    </div>
+                    <label for="sort-select" class="small text-secondary-emphasis mb-0 d-none d-sm-inline"><%= t('catalog.sort_by', 'Sort by') %>:</label>
+                    <select id="sort-select" name="sort" class="form-select form-select-sm w-auto js-auto-submit" aria-label="Sort products">
+                        <option value="" <%= !current.sort ? 'selected' : '' %>><%= t('catalog.sort_newest', 'Newest arrivals') %></option>
+                        <option value="price_asc" <%= current.sort === 'price_asc' ? 'selected' : '' %>><%= t('catalog.sort_price_asc', 'Price: low to high') %></option>
+                        <option value="price_desc" <%= current.sort === 'price_desc' ? 'selected' : '' %>><%= t('catalog.sort_price_desc', 'Price: high to low') %></option>
+                        <option value="best_rating" <%= current.sort === 'best_rating' ? 'selected' : '' %>><%= t('catalog.sort_best_rating', 'Best rated') %></option>
+                        <option value="popular" <%= current.sort === 'popular' ? 'selected' : '' %>><%= t('catalog.sort_popular', 'Most popular') %></option>
+                        <option value="oldest" <%= current.sort === 'oldest' ? 'selected' : '' %>><%= t('catalog.sort_oldest', 'Oldest') %></option>
+                    </select>
+                </div>
+            </div>
+
+            <% if (products.length === 0) { %>
+                <div class="empty-state text-center py-5 bg-body-tertiary rounded-4 border my-4">
+                    <i class="bi bi-search empty-state-icon fs-1 text-muted d-block mb-3" aria-hidden="true"></i>
+                    <h5 class="fw-bold mb-1"><%= t('catalog.no_products', 'No products match your criteria') %></h5>
+                    <p class="small text-secondary-emphasis mb-3"><%= t('catalog.try_adjusting', 'Try clearing some filters or expanding your price range.') %></p>
+                    <a href="/products" class="btn btn-primary btn-sm px-4"><%= t('catalog.clear_all', 'Clear All Filters') %></a>
+                </div>
+            <% } else { %>
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3" id="catalog-products-container">
+                    <% products.forEach((product) => { %>
+                        <div class="col">
+                            <%- include('../partials/product-card', { product }) %>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } %>
+
+            <%- include('../partials/pagination', { pagination, baseQuery }) %>
+        </section>
+    </div>
 </div>
+
+<%# ------------------------- Mobile Filters Offcanvas Drawer ------------------------- %>
+<div class="offcanvas <%= typeof dir !== 'undefined' && dir === 'rtl' ? 'offcanvas-end' : 'offcanvas-start' %>" tabindex="-1" id="mobileFilterDrawer" aria-labelledby="mobileFilterLabel" style="width: 330px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold" id="mobileFilterLabel"><i class="bi bi-sliders me-2 text-primary"></i><%= t('catalog.filters', 'Filters') %></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-3">
+        <form method="get" action="/products" id="catalog-filters-mobile">
+            <% if (current.q) { %><input type="hidden" name="q" value="<%= current.q %>"><% } %>
+            <% if (current.sort) { %><input type="hidden" name="sort" value="<%= current.sort %>"><% } %>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-uppercase small text-muted mb-2"><%= t('catalog.categories', 'Categories') %></h6>
+                <div class="d-flex flex-column gap-1 max-h-200 overflow-y-auto">
+                    <% categories.forEach((category) => { 
+                        const isChecked = currentCategories.includes(category.slug);
+                        const count = (facetCounts && facetCounts.categoryCounts && facetCounts.categoryCounts[category._id]) || 0;
+                    %>
+                        <label class="filter-option d-flex align-items-center justify-content-between p-1 rounded hover-bg">
+                            <span class="d-flex align-items-center gap-2">
+                                <input type="checkbox" name="category" value="<%= category.slug %>"
+                                       class="form-check-input mt-0" <%= isChecked ? 'checked' : '' %>>
+                                <span class="small"><%= category.name %></span>
+                            </span>
+                            <span class="badge bg-body-tertiary border text-muted small"><%= count %></span>
+                        </label>
+                    <% }) %>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-uppercase small text-muted mb-2"><%= t('catalog.brands', 'Brands') %></h6>
+                <div class="d-flex flex-column gap-1 max-h-200 overflow-y-auto">
+                    <% brands.forEach((brand) => { 
+                        const isChecked = currentBrands.includes(brand.slug);
+                        const count = (facetCounts && facetCounts.brandCounts && facetCounts.brandCounts[brand._id]) || 0;
+                    %>
+                        <label class="filter-option d-flex align-items-center justify-content-between p-1 rounded hover-bg">
+                            <span class="d-flex align-items-center gap-2">
+                                <input type="checkbox" name="brand" value="<%= brand.slug %>"
+                                       class="form-check-input mt-0" <%= isChecked ? 'checked' : '' %>>
+                                <span class="small"><%= brand.name %></span>
+                            </span>
+                            <span class="badge bg-body-tertiary border text-muted small"><%= count %></span>
+                        </label>
+                    <% }) %>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold text-uppercase small text-muted mb-0"><%= t('catalog.price_range', 'Price Range') %> ($)</h6>
+                    <span class="badge bg-primary-subtle text-primary-emphasis fw-bold js-slider-price-label-mobile">
+                        $<%= current.minPrice || 0 %> &ndash; $<%= current.maxPrice || 500 %>
+                    </span>
+                </div>
+                <%# Mobile Dual Slider %>
+                <div class="price-slider-wrapper position-relative my-3" data-min="0" data-max="500">
+                    <div class="price-slider-track bg-secondary-subtle rounded-pill position-absolute w-100" style="height: 6px; top: 50%; transform: translateY(-50%);"></div>
+                    <div class="price-slider-highlight bg-primary rounded-pill position-absolute" style="height: 6px; top: 50%; transform: translateY(-50%);"></div>
+                    <input type="range" class="price-slider-input price-slider-min" min="0" max="500" step="5" value="<%= current.minPrice || 0 %>" aria-label="Minimum price slider">
+                    <input type="range" class="price-slider-input price-slider-max" min="0" max="500" step="5" value="<%= current.maxPrice || 500 %>" aria-label="Maximum price slider">
+                </div>
+                <div class="d-flex gap-2">
+                    <input type="number" step="1" min="0" max="500" class="form-control form-control-sm js-min-price-input" name="minPrice" placeholder="<%= t('catalog.min_price', 'Min') %>" value="<%= current.minPrice || '' %>">
+                    <input type="number" step="1" min="0" max="500" class="form-control form-control-sm js-max-price-input" name="maxPrice" placeholder="<%= t('catalog.max_price', 'Max') %>" value="<%= current.maxPrice || '' %>">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-uppercase small text-muted mb-2"><%= t('catalog.customer_rating', 'Rating') %></h6>
+                <select name="minRating" class="form-select form-select-sm">
+                    <option value=""><%= t('catalog.any_rating', 'Any rating') %></option>
+                    <option value="4.5" <%= current.minRating === '4.5' ? 'selected' : '' %>>⭐ 4.5+ <%= t('catalog.stars_and_up', 'stars & up') %></option>
+                    <option value="4" <%= current.minRating === '4' ? 'selected' : '' %>>⭐ 4.0+ <%= t('catalog.stars_and_up', 'stars & up') %></option>
+                    <option value="3" <%= current.minRating === '3' ? 'selected' : '' %>>⭐ 3.0+ <%= t('catalog.stars_and_up', 'stars & up') %></option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="stockSwitchMobile" name="inStock" value="true"
+                           <%= current.inStock === 'true' ? 'checked' : '' %>>
+                    <label class="form-check-label fw-semibold small" for="stockSwitchMobile"><%= t('catalog.in_stock_only', 'In stock only') %></label>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary fw-semibold"><%= t('catalog.apply_filters', 'Apply Filters') %></button>
+                <a href="/products" class="btn btn-outline-secondary btn-sm"><%= t('catalog.reset_filters', 'Reset') %></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+

@@ -195,6 +195,16 @@ async function listForAdmin(filter = {}, query = {}) {
   };
 }
 
+async function voteHelpful(reviewId) {
+  const review = await Review.findByIdAndUpdate(
+    reviewId,
+    { $inc: { helpfulVotes: 1 } },
+    { new: true },
+  );
+  if (!review) throw notFound('Review not found');
+  return review;
+}
+
 module.exports = {
   resolveProduct,
   checkEligibility,
@@ -207,4 +217,6 @@ module.exports = {
   setApproval,
   listForAdmin,
   recomputeProductRating,
+  voteHelpful,
 };
+

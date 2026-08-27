@@ -116,6 +116,12 @@ const productSchema = new mongoose.Schema(
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviewCount: { type: Number, default: 0, min: 0 },
 
+    viewsCount: { type: Number, default: 0, min: 0 },
+    stockAlertSubscribers: [{
+      email: { type: String, lowercase: true, trim: true },
+      subscribedAt: { type: Date, default: Date.now },
+    }],
+
     isFeatured: { type: Boolean, default: false, index: true },
     isActive: { type: Boolean, default: true, index: true },
   },

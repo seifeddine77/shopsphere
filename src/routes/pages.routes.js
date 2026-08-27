@@ -30,14 +30,17 @@ function adminPage(handler) {
 }
 
 router.get('/admin', ...adminPage(pageController.adminDashboard));
+router.get('/admin/dashboard', ...adminPage(pageController.adminDashboard));
 router.get('/admin/products', ...adminPage(pageController.adminProductsPage));
 router.get('/admin/products/new', ...adminPage(pageController.adminProductFormPage));
 router.get('/admin/products/:id/edit', ...adminPage(pageController.adminProductFormPage));
 router.get('/admin/categories', ...adminPage((req, res, next) => pageController.taxonomyManagerPage('categories', req, res, next)));
 router.get('/admin/brands', ...adminPage((req, res, next) => pageController.taxonomyManagerPage('brands', req, res, next)));
+router.get('/admin/taxonomy', ...adminPage((req, res, next) => pageController.taxonomyManagerPage('categories', req, res, next)));
 router.get('/admin/inventory', ...adminPage(pageController.adminInventoryPage));
 router.get('/admin/coupons', ...adminPage(pageController.adminCouponsPage));
 router.get('/admin/reviews', ...adminPage(pageController.adminModerationPage));
+router.get('/admin/moderation', ...adminPage(pageController.adminModerationPage));
 router.get('/admin/users', ...adminPage(pageController.adminUsersPage));
 router.get('/admin/settings', ...adminPage(pageController.adminSettingsPage));
 router.get('/admin/orders', requirePageAdmin, pageController.adminOrdersPage);
@@ -133,7 +136,10 @@ function redirectIfAuthenticated(view) {
   return [
     optionalAuth,
     (req, res) => {
-      if (req.user) return res.redirect('/');
+      if (req.user) {
+        if (req.user.role === 'ADMIN') return res.redirect('/admin');
+        return res.redirect('/');
+      }
       return res.render(view, {
         title: viewTitle(view),
         stylesheets: ['/css/auth.css'],

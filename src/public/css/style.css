@@ -82,6 +82,61 @@ body {
     padding-inline-start: 1rem;
 }
 
+.search-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background-color: var(--ss-surface);
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--ss-radius);
+    box-shadow: var(--ss-shadow-md);
+    z-index: 1050;
+    overflow: hidden;
+    display: none;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.search-autocomplete-dropdown.show {
+    display: block;
+    animation: fadeInDown 0.18s ease-out;
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.search-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    color: var(--ss-dark);
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.search-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.search-suggestion-item:hover,
+.search-suggestion-item.active {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.search-suggestion-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: var(--ss-bg);
+    flex-shrink: 0;
+}
+
 .badge-counter {
     position: absolute;
     top: -2px;
@@ -189,6 +244,103 @@ body {
     outline-offset: 2px;
 }
 
+/* ----------------------- AI Shopping Assistant ------------------------- */
+.ai-floating-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1040;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.ai-floating-btn:hover {
+    transform: translateY(-4px) scale(1.04);
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.55);
+    color: #ffffff;
+}
+
+.ai-floating-sparkle {
+    display: inline-flex;
+    font-size: 1.1rem;
+    animation: sparkle-pulse 2s infinite ease-in-out;
+}
+
+@keyframes sparkle-pulse {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.25) rotate(15deg); opacity: 0.85; }
+}
+
+.ai-header-gradient {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.ai-avatar-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.1rem;
+}
+
+.ai-chip {
+    font-size: 0.75rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    transition: var(--ss-transition);
+}
+
+.ai-chip:hover {
+    transform: translateY(-1px);
+}
+
+/* ------------------------- Cart Drawer --------------------------------- */
+.cart-drawer-offcanvas {
+    box-shadow: -8px 0 28px rgba(0, 0, 0, 0.15);
+}
+
+/* ------------------------------- RTL Language Support (Arabic) --------- */
+[dir="rtl"] body {
+    font-family: "Segoe UI", Tahoma, Arial, system-ui, sans-serif;
+    text-align: right;
+}
+
+[dir="rtl"] .dropdown-menu-end {
+    --bs-position: start;
+    right: auto !important;
+    left: 0 !important;
+}
+
+[dir="rtl"] .ai-floating-btn {
+    right: auto !important;
+    left: 1.5rem !important;
+}
+
+[dir="rtl"] .breadcrumb-item + .breadcrumb-item::before {
+    float: right;
+    padding-left: var(--bs-breadcrumb-item-padding-x);
+    padding-right: 0;
+}
+
+[dir="rtl"] .navbar-nav {
+    padding-right: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -197,3 +349,5 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+
+

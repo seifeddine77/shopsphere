@@ -34,21 +34,36 @@ async function buildFilter(query, { includeInactive = false } = {}) {
     filter.isActive = true;
   }
 
-  // Keyword search via the text index
+  // Keyword search with tokenized partial and full-string matching
   if (query.q && String(query.q).trim()) {
-    filter.$text = { $search: String(query.q).trim().slice(0, 120) };
+    const rawQ = String(query.q).trim().slice(0, 120);
+    const escapedQ = escapeRegExp(rawQ);
+    const tokens = rawQ.split(/\s+/).filter(Boolean).map(escapeRegExp);
+    const regexPattern = tokens.join('|') || escapedQ;
+
+    filter.$or = [
+      { name: { $regex: regexPattern, $options: 'i' } },
+      { description: { $regex: regexPattern, $options: 'i' } },
+      { sku: { $regex: regexPattern, $options: 'i' } },
+    ];
   }
 
   if (query.category) {
-    const category = await Category.findOne({ slug: String(query.category).toLowerCase() });
-    if (!category) return { _id: { $exists: false } }; // no match possible
-    filter.category = category._id;
+    const rawCats = Array.isArray(query.category)
+      ? query.category
+      : String(query.category).split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+    const categories = await Category.find({ slug: { $in: rawCats } }).select('_id');
+    if (categories.length === 0) return { _id: { $exists: false } };
+    filter.category = categories.length === 1 ? categories[0]._id : { $in: categories.map((c) => c._id) };
   }
 
   if (query.brand) {
-    const brand = await Brand.findOne({ slug: String(query.brand).toLowerCase() });
-    if (!brand) return { _id: { $exists: false } };
-    filter.brand = brand._id;
+    const rawBrands = Array.isArray(query.brand)
+      ? query.brand
+      : String(query.brand).split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+    const brands = await Brand.find({ slug: { $in: rawBrands } }).select('_id');
+    if (brands.length === 0) return { _id: { $exists: false } };
+    filter.brand = brands.length === 1 ? brands[0]._id : { $in: brands.map((b) => b._id) };
   }
 
   const minPrice = Number.parseFloat(query.minPrice);
@@ -143,13 +158,26 @@ async function getSuggestions(rawQuery, limit = 8) {
   const term = escapeRegExp(String(rawQuery || '').trim().slice(0, 80));
   if (!term) return [];
 
-  return Product.find({
+  const products = await Product.find({
     isActive: true,
-    name: { $regex: `^${term}`, $options: 'i' },
+    $or: [
+      { name: { $regex: term, $options: 'i' } },
+      { description: { $regex: term, $options: 'i' } },
+    ],
   })
     .limit(limit)
-    .select('name slug effectivePrice images rating')
+    .select('name slug price discountPrice effectivePrice images rating')
     .lean();
+
+  return products.map((p) => ({
+    _id: p._id,
+    name: p.name,
+    slug: p.slug,
+    price: p.price,
+    effectivePrice: p.discountPrice != null ? p.discountPrice : p.price,
+    image: (p.images && p.images[0]) || '/images/placeholder.svg',
+    rating: p.rating,
+  }));
 }
 
 /** Full product detail by slug or id, with references populated */
@@ -314,6 +342,62 @@ async function compareProducts(identifiers = []) {
   };
 }
 
+async function subscribeStockAlert(productId, email) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  if (!cleanEmail || !cleanEmail.includes('@')) {
+    throw badRequest('Please provide a valid email address');
+  }
+  const product = await Product.findById(productId);
+  if (!product) throw notFound('Product not found');
+
+  const already = product.stockAlertSubscribers.some((s) => s.email === cleanEmail);
+  if (!already) {
+    product.stockAlertSubscribers.push({ email: cleanEmail, subscribedAt: new Date() });
+    await product.save();
+  }
+  return { subscribed: true, email: cleanEmail };
+}
+
+async function trackView(productId) {
+  await Product.findByIdAndUpdate(productId, { $inc: { viewsCount: 1 } });
+}
+
+async function getFacetCounts() {
+  const [catCounts, brandCounts, priceStats] = await Promise.all([
+    Product.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+    ]),
+    Product.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: '$brand', count: { $sum: 1 } } },
+    ]),
+    Product.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: null, min: { $min: '$effectivePrice' }, max: { $max: '$effectivePrice' } } },
+    ]),
+  ]);
+
+  const categoryCounts = {};
+  catCounts.forEach((c) => {
+    if (c._id) categoryCounts[c._id.toString()] = c.count;
+  });
+
+  const brandCountsMap = {};
+  brandCounts.forEach((b) => {
+    if (b._id) brandCountsMap[b._id.toString()] = b.count;
+  });
+
+  const minPrice = priceStats[0] ? Math.floor(priceStats[0].min || 0) : 0;
+  const maxPrice = priceStats[0] ? Math.ceil(priceStats[0].max || 500) : 500;
+
+  return {
+    categoryCounts,
+    brandCounts: brandCountsMap,
+    priceRange: { min: minPrice, max: maxPrice > minPrice ? maxPrice : 500 },
+  };
+}
+
 module.exports = {
   listProducts,
   getSuggestions,
@@ -323,5 +407,10 @@ module.exports = {
   updateProduct,
   deleteProduct,
   compareProducts,
+  subscribeStockAlert,
+  trackView,
+  getFacetCounts,
   slugify,
 };
+
+

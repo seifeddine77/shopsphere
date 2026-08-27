@@ -22,6 +22,7 @@ router.get('/:identifier/reviews', reviewController.listForProduct);
 router.post('/:identifier/reviews', protect, validate(createReviewSchema), reviewController.create);
 
 // slug or id - must come after the more specific routes above
+router.post('/:id/stock-alert', productController.stockAlert);
 router.get('/:identifier', productController.details);
 
 /* ------------------------------- Admin ----------------------------------- */

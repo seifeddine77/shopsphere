@@ -69,7 +69,7 @@ if (config.isDevelopment) {
 /* ---------------------------- Rate limiting ---------------------------- */
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: config.isDevelopment ? 5000 : 300,
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => config.isTest,
@@ -93,6 +93,7 @@ app.use(
 /* sameOriginGuard rejects cross-origin state-changing browser requests.    */
 app.use(optionalAuth);
 app.use(sameOriginGuard);
+app.use(require('./middlewares/i18n.middleware').i18nMiddleware);
 app.use(require('./middlewares/locals.middleware').attachLocals);
 
 /* ------------------------------- Routes -------------------------------- */

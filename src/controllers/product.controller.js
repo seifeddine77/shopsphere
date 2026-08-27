@@ -96,4 +96,22 @@ async function compare(req, res, next) {
   }
 }
 
-module.exports = { list, suggest, details, create, update, remove, compare };
+/**
+ * POST /api/products/:id/stock-alert
+ */
+async function stockAlert(req, res, next) {
+  try {
+    const email = req.user ? req.user.email : req.body.email;
+    const result = await productService.subscribeStockAlert(req.params.id, email);
+    return sendSuccess(res, {
+      data: result,
+      message: 'You are now subscribed to stock alerts for this product!',
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { list, suggest, details, create, update, remove, compare, stockAlert };
+
+

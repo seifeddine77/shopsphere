@@ -1,8 +1,9 @@
 <section id="recently-viewed-section" class="mt-5 d-none" aria-labelledby="recent-heading">
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 id="recent-heading" class="h4 fw-bold mb-0">Recently Viewed</h2>
-        <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted" id="clear-recent-btn">Clear history</button>
+        <h2 id="recent-heading" class="h4 fw-bold mb-0"><%= t('product.recently_viewed', 'Recently Viewed') %></h2>
+        <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted" id="clear-recent-btn"><%= t('product.clear_history', 'Clear history') %></button>
     </div>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3" id="recently-viewed-grid"></div>
 </section>
+
 

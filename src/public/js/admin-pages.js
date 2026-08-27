@@ -153,19 +153,37 @@
       const payload = {};
       new FormData(form).forEach((value, key) => { payload[key] = value; });
 
+      // Product Form Specific Handlers
+      if (form.id === 'product-form') {
+        const activeSwitch = form.querySelector('#pf-active');
+        const featuredSwitch = form.querySelector('#pf-featured');
+        if (activeSwitch) payload.isActive = activeSwitch.checked;
+        if (featuredSwitch) payload.isFeatured = featuredSwitch.checked;
+
+        if (typeof payload.images === 'string') {
+          payload.images = payload.images.trim() ? [payload.images.trim()] : [];
+        } else if (!payload.images) {
+          payload.images = [];
+        }
+      }
+
       // Type coercion for known numeric/optional fields
-      ['price', 'discountPrice', 'minimumAmount', 'maximumDiscount', 'discountValue']
+      ['price', 'discountPrice', 'minimumAmount', 'maximumDiscount', 'discountValue', 'shippingFlatRate', 'shippingFreeThreshold']
         .forEach((key) => {
           if (payload[key] === '' || payload[key] === undefined) {
-            if (['discountPrice', 'maximumDiscount'].includes(key)) payload[key] = null;
+            if (['discountPrice', 'maximumDiscount', 'shippingFlatRate', 'shippingFreeThreshold'].includes(key)) payload[key] = null;
             else delete payload[key];
           } else {
             payload[key] = Number(payload[key]);
           }
         });
-      ['stock', 'usageLimit'].forEach((key) => {
-        if (payload[key] !== undefined && payload[key] !== '') payload[key] = Number.parseInt(payload[key], 10);
-        else delete payload[key];
+      ['stock', 'usageLimit', 'lowStockThreshold'].forEach((key) => {
+        if (payload[key] === '' || payload[key] === undefined) {
+          if (key === 'lowStockThreshold') payload[key] = null;
+          else delete payload[key];
+        } else {
+          payload[key] = Number.parseInt(payload[key], 10);
+        }
       });
       if (payload.expirationDate === '') payload.expirationDate = null;
       if (form.id === 'coupon-form' && payload.code) payload.code = String(payload.code).toUpperCase();
@@ -258,4 +276,43 @@
     });
     select.dataset.previous = select.value;
   });
+
+  /* ---------------------------- AI Copywriting ------------------------------ */
+
+  const aiGenBtn = document.getElementById('btn-ai-generate-desc');
+  if (aiGenBtn) {
+    aiGenBtn.addEventListener('click', async () => {
+      const nameInput = document.getElementById('pf-name');
+      const descInput = document.getElementById('pf-description');
+      const catSelect = document.getElementById('pf-category');
+      
+      const name = nameInput ? nameInput.value.trim() : '';
+      if (!name) {
+        window.app.showToast('Please enter a product name first.', 'info');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+
+      const categoryName = catSelect && catSelect.selectedIndex > 0 ? catSelect.options[catSelect.selectedIndex].text : '';
+      aiGenBtn.disabled = true;
+      aiGenBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+
+      try {
+        const result = await window.app.api('/api/ai/generate-product', {
+          method: 'POST',
+          body: JSON.stringify({ name, categoryName, keywords: name }),
+        });
+
+        if (result && result.data && result.data.copy) {
+          descInput.value = result.data.copy.description;
+          window.app.showToast('Product description generated with AI!', 'success');
+        }
+      } catch (err) {
+        window.app.showToast(err.message || 'AI generation failed', 'danger');
+      } finally {
+        aiGenBtn.disabled = false;
+        aiGenBtn.innerHTML = '<i class="bi bi-stars"></i> Generate with AI';
+      }
+    });
+  }
 })();

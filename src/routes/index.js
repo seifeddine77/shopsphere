@@ -10,6 +10,7 @@ const reviewApiRoutes = require('./review.routes');
 const userApiRoutes = require('./user.routes');
 const uploadApiRoutes = require('./upload.routes');
 const newsletterApiRoutes = require('./newsletter.routes');
+const aiApiRoutes = require('./ai.routes');
 const pageRoutes = require('./pages.routes');
 const homeController = require('../controllers/home.controller');
 
@@ -22,6 +23,7 @@ const api = express.Router();
 api.use('/auth', authApiRoutes);
 api.use('/admin', adminApiRoutes); // protects itself via protect + adminOnly
 api.use('/products', productApiRoutes);
+api.use('/ai', aiApiRoutes); // Shopping advisor, review insights, copy generator
 api.use('/', shoppingApiRoutes); // /api/cart + /api/wishlist (self-protected)
 api.use('/', orderApiRoutes); // /api/orders + /api/coupons/validate
 api.use('/', reviewApiRoutes); // /api/reviews/:id (own edits/removals)

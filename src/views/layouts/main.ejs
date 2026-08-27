@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<%= typeof currentLang !== 'undefined' ? currentLang : 'en' %>" dir="<%= typeof dir !== 'undefined' ? dir : 'ltr' %>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,9 +25,54 @@
     </main>
 
     <%- include('../partials/footer') %>
+    <%- include('../partials/cart-drawer') %>
+    <%- include('../partials/ai-assistant') %>
+
+    <!-- Quick View Modal -->
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <div class="row g-4 align-items-center" id="quick-view-content">
+                        <div class="col-12 col-md-6 text-center">
+                            <div class="p-3 bg-body-tertiary rounded-3">
+                                <img src="/images/placeholder.svg" id="qv-image" alt="" class="img-fluid rounded" style="max-height: 280px; object-fit: contain;">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <p class="text-uppercase text-muted small fw-semibold mb-1" id="qv-brand"></p>
+                            <h4 class="fw-bold mb-2" id="qv-title"></h4>
+                            <div class="d-flex align-items-center gap-2 mb-2" id="qv-rating"></div>
+                            <div class="d-flex align-items-baseline gap-2 mb-3">
+                                <span class="fs-4 fw-bold text-primary" id="qv-price"></span>
+                                <s class="text-muted" id="qv-old-price"></s>
+                            </div>
+                            <p class="small text-secondary-emphasis mb-3" id="qv-desc" style="max-height: 80px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;"></p>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle py-1 px-2" id="qv-stock"></span>
+                                <span class="small text-muted" id="qv-sku"></span>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-primary fw-semibold py-2 js-add-to-cart" id="qv-add-btn">
+                                    <i class="bi bi-cart-plus me-1"></i><%= t('product.add_to_cart', 'Add to cart') %>
+                                </button>
+                                <a href="#" class="btn btn-outline-secondary btn-sm text-center" id="qv-details-link">
+                                    <%= t('catalog.view_full_details', 'View Full Product Details') %> &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="/js/main.js" defer></script>
+    <script src="/js/ai-assistant.js" defer></script>
     <% (typeof scripts !== 'undefined' ? scripts : []).forEach((src) => { %>
     <script src="<%= src %>" defer></script>
     <% }) %>

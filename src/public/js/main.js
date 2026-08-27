@@ -8,7 +8,7 @@
     el.textContent = new Date().getFullYear();
   });
 
-  /* ------------------- Navbar search suggestions ------------------------- */
+  /* ------------------- Navbar search suggestions & Autocomplete --------- */
 
   function initSearchSuggestions() {
     const input = document.getElementById('navbar-search');
@@ -23,38 +23,121 @@
       input.setAttribute('aria-expanded', 'false');
     };
 
-    const render = (suggestions) => {
-      panel.innerHTML = '';
-      if (!suggestions.length) { hide(); return; }
+    const getRecentSearches = () => {
+      try {
+        return JSON.parse(localStorage.getItem('shopsphere_recent_searches') || '[]');
+      } catch (_e) {
+        return [];
+      }
+    };
 
-      suggestions.forEach((item) => {
-        const li = document.createElement('li');
-        const link = document.createElement('a');
-        link.href = `/products/${item.slug}`;
-        link.textContent = item.name;
-        li.appendChild(link);
-        panel.appendChild(li);
-      });
+    const saveSearch = (query) => {
+      const q = (query || '').trim();
+      if (!q) return;
+      const recent = getRecentSearches().filter((s) => s.toLowerCase() !== q.toLowerCase());
+      recent.unshift(q);
+      localStorage.setItem('shopsphere_recent_searches', JSON.stringify(recent.slice(0, 5)));
+    };
+
+    const renderRecent = () => {
+      const recent = getRecentSearches();
+      if (!recent.length) { hide(); return; }
+
+      panel.innerHTML = `
+        <li class="p-2 border-bottom text-muted small fw-semibold bg-body-tertiary d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clock-history me-1"></i>Recent Searches</span>
+          <button type="button" class="btn btn-sm btn-link p-0 text-danger text-decoration-none js-clear-recent" style="font-size: 0.75rem;">Clear</button>
+        </li>
+        ${recent.map((s) => `
+          <li>
+            <a href="/products?q=${encodeURIComponent(s)}" class="search-suggestion-item">
+              <i class="bi bi-search text-muted me-2"></i>
+              <span class="flex-grow-1">${s}</span>
+            </a>
+          </li>
+        `).join('')}
+      `;
       panel.classList.remove('d-none');
       input.setAttribute('aria-expanded', 'true');
     };
 
+    const renderSuggestions = (suggestions, term) => {
+      panel.innerHTML = '';
+      if (!suggestions.length) {
+        panel.innerHTML = `
+          <li class="p-3 text-center text-muted small">
+            <p class="mb-1 fw-semibold">No direct matches for "${term}"</p>
+            <a href="/products?q=${encodeURIComponent(term)}" class="btn btn-sm btn-outline-primary mt-1">Search catalog for "${term}" &rarr;</a>
+          </li>
+        `;
+        panel.classList.remove('d-none');
+        input.setAttribute('aria-expanded', 'true');
+        return;
+      }
+
+      panel.innerHTML = `
+        <li class="p-2 border-bottom text-muted small fw-semibold bg-body-tertiary">
+          <span><i class="bi bi-stars text-primary me-1"></i>Products & Suggestions</span>
+        </li>
+        ${suggestions.map((item) => `
+          <li>
+            <a href="/products/${item.slug}" class="search-suggestion-item">
+              <img src="${item.image || '/images/placeholder.svg'}" alt="" class="search-suggestion-thumb">
+              <div class="flex-grow-1 min-w-0">
+                <div class="fw-semibold small text-truncate">${item.name}</div>
+                <div class="text-primary fw-bold small">$${Number(item.effectivePrice || item.price || 0).toFixed(2)}</div>
+              </div>
+            </a>
+          </li>
+        `).join('')}
+        <li class="p-2 border-top text-center bg-body-tertiary">
+          <a href="/products?q=${encodeURIComponent(term)}" class="small fw-semibold text-primary text-decoration-none">
+            View all results for "${term}" &rarr;
+          </a>
+        </li>
+      `;
+      panel.classList.remove('d-none');
+      input.setAttribute('aria-expanded', 'true');
+    };
+
+    input.addEventListener('focus', () => {
+      if (!input.value.trim()) {
+        renderRecent();
+      }
+    });
+
     input.addEventListener('input', () => {
       clearTimeout(debounceTimer);
       const term = input.value.trim();
-      if (term.length < 2) { hide(); return; }
+      if (term.length < 2) {
+        if (!term) renderRecent();
+        else hide();
+        return;
+      }
 
       debounceTimer = setTimeout(async () => {
         try {
           const result = await window.app.api(`/api/products/suggest?q=${encodeURIComponent(term)}`);
-          render(result.data.suggestions);
+          if (result && result.data) {
+            renderSuggestions(result.data.suggestions || [], term);
+          }
         } catch (_error) { hide(); }
-      }, 250);
+      }, 200);
+    });
+
+    input.closest('form')?.addEventListener('submit', () => {
+      saveSearch(input.value);
     });
 
     document.addEventListener('click', (event) => {
+      if (event.target.closest('.js-clear-recent')) {
+        localStorage.removeItem('shopsphere_recent_searches');
+        hide();
+        return;
+      }
       if (!event.target.closest('#navbar-search') && !event.target.closest('#search-suggest')) hide();
     });
+
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') hide();
     });
@@ -151,6 +234,90 @@
     window.location.href = `/auth/login?redirect=${redirect}`;
   }
 
+  /* -------------------- Cart Drawer Logic -------------------------------- */
+  window.app.renderCartDrawer = function renderCartDrawer(cart) {
+    const container = document.getElementById('cart-drawer-items');
+    const emptyState = document.getElementById('cart-drawer-empty');
+    const footer = document.getElementById('cart-drawer-footer');
+    const subtotalEl = document.getElementById('cart-drawer-subtotal');
+    const countEl = document.getElementById('cart-drawer-count');
+
+    if (!container) return;
+
+    const items = (cart && cart.items) || [];
+    const count = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
+    if (countEl) countEl.textContent = String(count);
+
+    if (items.length === 0) {
+      container.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('d-none');
+      if (footer) footer.classList.add('d-none');
+      return;
+    }
+
+    const subtotal = Number(cart.subtotal || 0);
+    if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+
+    // Free shipping calculation
+    const freeShippingBox = document.getElementById('cart-drawer-free-shipping');
+    const freeShippingLabel = document.getElementById('cart-drawer-free-shipping-label');
+    const freeShippingBar = document.getElementById('cart-drawer-free-shipping-bar');
+    const freeShippingPercent = document.getElementById('cart-drawer-free-shipping-percent');
+
+    if (freeShippingBox && freeShippingBar && freeShippingLabel && freeShippingPercent) {
+      const threshold = 100;
+      const diff = Math.max(0, threshold - subtotal);
+      const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
+
+      freeShippingBox.classList.remove('d-none');
+      freeShippingBar.style.width = `${percent}%`;
+      freeShippingPercent.textContent = `${percent}%`;
+
+      if (diff <= 0) {
+        freeShippingLabel.innerHTML = '<i class="bi bi-gift-fill text-success me-1"></i>Free Express Shipping unlocked!';
+      } else {
+        freeShippingLabel.innerHTML = `<i class="bi bi-truck text-primary me-1"></i>Add $${diff.toFixed(2)} for Free Shipping`;
+      }
+    }
+
+    container.innerHTML = items.map((item) => `
+      <div class="d-flex align-items-center gap-3 py-3 border-bottom cart-drawer-item" data-item-id="${item._id}">
+        <img src="${(item.product && item.product.images && item.product.images[0]) || '/images/placeholder.svg'}"
+             alt="${item.name}" class="rounded border p-1" style="width: 60px; height: 60px; object-fit: contain;">
+        <div class="flex-grow-1 min-w-0">
+          <h6 class="mb-0 small fw-semibold text-truncate"><a href="/products/${item.slug}" class="text-reset text-decoration-none">${item.name}</a></h6>
+          <div class="text-muted small mt-1">$${Number(item.unitPrice).toFixed(2)} &times; ${item.quantity} = <strong class="text-primary">$${Number(item.lineTotal || (item.unitPrice * item.quantity)).toFixed(2)}</strong></div>
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 js-drawer-qty" data-action="dec" data-id="${item._id}">-</button>
+            <span class="small fw-bold px-1">${item.quantity}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 js-drawer-qty" data-action="inc" data-id="${item._id}">+</button>
+            <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto js-drawer-remove" data-id="${item._id}">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  window.app.refreshCartDrawer = async function refreshCartDrawer() {
+    try {
+      const result = await window.app.api('/api/cart');
+      if (result && result.data && result.data.cart) {
+        window.app.renderCartDrawer(result.data.cart);
+        window.app.updateBadge('cart', result.data.cart.itemCount);
+      }
+    } catch (_e) {}
+  };
+
+  window.app.openCartDrawer = function openCartDrawer() {
+    const drawerEl = document.getElementById('cartDrawerOffcanvas');
+    if (drawerEl && window.bootstrap && window.bootstrap.Offcanvas) {
+      const offcanvas = window.bootstrap.Offcanvas.getOrCreateInstance(drawerEl);
+      offcanvas.show();
+    }
+  };
+
   /* -------------------- Shared cart / wishlist actions ------------------- */
   /* Used by catalog cards, product detail and wishlist pages.               */
 
@@ -161,7 +328,9 @@
         body: JSON.stringify({ productId, quantity }),
       });
       window.app.updateBadge('cart', result.data.cart.itemCount);
+      window.app.renderCartDrawer(result.data.cart);
       window.app.showToast('Added to cart', 'success');
+      window.app.openCartDrawer();
       return true;
     } catch (error) {
       if (error.status === 401) { redirectToLogin(); return false; }
@@ -198,6 +367,71 @@
     const addWish = event.target.closest('.js-add-to-wishlist');
     if (addWish && !addWish.disabled) {
       window.app.addToWishlist(addWish.dataset.productId);
+      return;
+    }
+
+    const addComp = event.target.closest('.js-add-to-compare');
+    if (addComp) {
+      const pid = addComp.dataset.productId;
+      try {
+        const stored = JSON.parse(localStorage.getItem('shopsphere_compare_ids') || '[]');
+        if (!stored.includes(pid)) {
+          if (stored.length >= 4) {
+            window.app.showToast('You can compare up to 4 products at a time.', 'info');
+            return;
+          }
+          stored.push(pid);
+          localStorage.setItem('shopsphere_compare_ids', JSON.stringify(stored));
+        }
+        window.app.showToast('Added to comparison! <a href="/compare" class="text-white text-decoration-underline ms-1 fw-bold">Compare now</a>', 'primary');
+      } catch (_e) {}
+      return;
+    }
+
+    /* Cart drawer quantity adjustment */
+    const drawerQty = event.target.closest('.js-drawer-qty');
+    if (drawerQty) {
+      const itemId = drawerQty.dataset.id;
+      const action = drawerQty.dataset.action;
+      const row = drawerQty.closest('.cart-drawer-item');
+      const currentQty = Number.parseInt(row.querySelector('span.fw-bold').textContent, 10) || 1;
+      const nextQty = action === 'inc' ? currentQty + 1 : currentQty - 1;
+
+      (async () => {
+        try {
+          if (nextQty <= 0) {
+            const res = await window.app.api(`/api/cart/items/${itemId}`, { method: 'DELETE' });
+            window.app.renderCartDrawer(res.data.cart);
+            window.app.updateBadge('cart', res.data.cart.itemCount);
+          } else {
+            const res = await window.app.api(`/api/cart/items/${itemId}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ quantity: nextQty }),
+            });
+            window.app.renderCartDrawer(res.data.cart);
+            window.app.updateBadge('cart', res.data.cart.itemCount);
+          }
+        } catch (err) {
+          window.app.showToast(err.message, 'danger');
+        }
+      })();
+      return;
+    }
+
+    /* Cart drawer item removal */
+    const drawerRemove = event.target.closest('.js-drawer-remove');
+    if (drawerRemove) {
+      const itemId = drawerRemove.dataset.id;
+      (async () => {
+        try {
+          const res = await window.app.api(`/api/cart/items/${itemId}`, { method: 'DELETE' });
+          window.app.renderCartDrawer(res.data.cart);
+          window.app.updateBadge('cart', res.data.cart.itemCount);
+          window.app.showToast('Item removed', 'info');
+        } catch (err) {
+          window.app.showToast(err.message, 'danger');
+        }
+      })();
     }
   });
 
@@ -351,5 +585,78 @@
     }
   }
 
+  /* ------------------- Product Comparison System ------------------------ */
+  function initCompare() {
+    const COMPARE_KEY = 'shopsphere_compare_items';
+
+    const getCompareList = () => {
+      try {
+        return JSON.parse(localStorage.getItem(COMPARE_KEY)) || [];
+      } catch (_e) {
+        return [];
+      }
+    };
+
+    const updateCompareBadge = () => {
+      const list = getCompareList();
+      const badge = document.getElementById('compare-count-badge');
+      if (badge) {
+        badge.textContent = list.length;
+        if (list.length > 0) {
+          badge.classList.remove('d-none');
+        } else {
+          badge.classList.add('d-none');
+        }
+      }
+
+      // Update navbar compare button href
+      const navBtn = document.getElementById('nav-compare-btn');
+      if (navBtn) {
+        navBtn.href = list.length > 0 ? `/compare?ids=${list.join(',')}` : '/compare';
+      }
+
+      // Update button active state on page
+      document.querySelectorAll('.js-add-to-compare').forEach((btn) => {
+        const id = btn.dataset.productId;
+        if (id && list.includes(id)) {
+          btn.classList.add('btn-primary', 'text-white');
+          btn.classList.remove('btn-outline-secondary');
+        } else {
+          btn.classList.remove('btn-primary', 'text-white');
+          btn.classList.add('btn-outline-secondary');
+        }
+      });
+    };
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.js-add-to-compare');
+      if (!btn) return;
+      e.preventDefault();
+
+      const id = btn.dataset.productId;
+      if (!id) return;
+
+      let list = getCompareList();
+      if (list.includes(id)) {
+        list = list.filter((item) => item !== id);
+        localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
+        updateCompareBadge();
+        window.app.showToast('Product removed from comparison', 'info');
+      } else {
+        if (list.length >= 4) {
+          window.app.showToast('You can compare up to 4 products at a time.', 'warning');
+          return;
+        }
+        list.push(id);
+        localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
+        updateCompareBadge();
+        window.app.showToast(`Product added to comparison (${list.length}/4).`, 'success');
+      }
+    });
+
+    updateCompareBadge();
+  }
+
   initRecentlyViewed();
+  initCompare();
 })();

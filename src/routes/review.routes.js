@@ -9,5 +9,7 @@ const { updateReviewSchema } = require('../validators/review.validator');
 
 router.put('/reviews/:id', protect, validate(updateReviewSchema), reviewController.update);
 router.delete('/reviews/:id', protect, reviewController.remove);
+router.post('/reviews/:id/helpful', reviewController.voteHelpful);
 
 module.exports = router;
+

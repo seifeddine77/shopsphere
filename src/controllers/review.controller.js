@@ -95,6 +95,18 @@ async function reject(req, res, next) {
   }
 }
 
+async function voteHelpful(req, res, next) {
+  try {
+    const review = await reviewService.voteHelpful(req.params.id);
+    return sendSuccess(res, {
+      data: { helpfulVotes: review.helpfulVotes },
+      message: 'Thank you for your feedback!',
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   listForProduct,
   create,
@@ -103,4 +115,6 @@ module.exports = {
   adminList,
   approve,
   reject,
+  voteHelpful,
 };
+

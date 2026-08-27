@@ -88,11 +88,20 @@
       await submitForm('/api/auth/login', loginForm, {
         email: loginForm.email.value.trim(),
         password: loginForm.password.value,
-      }, () => {
-        window.location.href = safeRedirectPath(
-          new URLSearchParams(window.location.search).get('redirect'),
-          '/',
-        );
+      }, (result) => {
+        const explicitRedirect = new URLSearchParams(window.location.search).get('redirect');
+        if (explicitRedirect) {
+          window.location.href = safeRedirectPath(explicitRedirect, '/');
+          return;
+        }
+
+        const user = result && result.data && result.data.user;
+        if (user && user.role === 'ADMIN') {
+          window.location.href = '/admin';
+          return;
+        }
+
+        window.location.href = '/';
       });
     });
   }

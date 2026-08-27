@@ -16,9 +16,15 @@
             </time>
         </header>
         <p class="review-comment mb-1"><%= review.comment %></p>
+        <div class="d-flex align-items-center gap-2 mt-2 mb-1">
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 js-helpful-vote d-flex align-items-center gap-1"
+                    data-review-id="<%= review._id %>" style="font-size: 0.75rem;">
+                <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i> <%= t('product.helpful', 'Helpful') %> <span class="helpful-count fw-bold"><%= review.helpfulVotes || 0 %></span>
+            </button>
+        </div>
         <% if (!review.isApproved) { %>
             <p class="small text-warning-emphasis mb-1">
-                <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>Awaiting approval
+                <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i><%= t('product.awaiting_approval', 'Awaiting approval') %>
             </p>
         <% } %>
         <% if (mine) { %>
@@ -33,3 +39,4 @@
         <% } %>
     </div>
 </article>
+

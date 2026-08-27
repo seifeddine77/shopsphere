@@ -3,10 +3,25 @@
 (function () {
   'use strict';
 
-  /* ------------------------------- Gallery -------------------------------- */
+  /* ------------------------------- Gallery & Zoom ------------------------- */
 
   const mainImage = document.getElementById('gallery-main');
-  if (mainImage) {
+  const zoomContainer = document.querySelector('.gallery-zoom-container');
+
+  if (mainImage && zoomContainer) {
+    zoomContainer.addEventListener('mousemove', (e) => {
+      const rect = zoomContainer.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      mainImage.style.transformOrigin = `${x}% ${y}%`;
+      mainImage.style.transform = 'scale(1.75)';
+    });
+
+    zoomContainer.addEventListener('mouseleave', () => {
+      mainImage.style.transform = 'scale(1)';
+      mainImage.style.transformOrigin = 'center center';
+    });
+
     document.querySelectorAll('.gallery-thumb').forEach((thumb) => {
       thumb.addEventListener('click', () => {
         mainImage.src = thumb.dataset.src;
@@ -149,5 +164,81 @@
         window.app.showToast(error.message, 'danger');
       }
     });
+  }
+
+  /* -------------------------- Helpful review vote -------------------------- */
+  document.querySelectorAll('.js-helpful-vote').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const reviewId = btn.dataset.reviewId;
+      btn.disabled = true;
+      try {
+        const res = await window.app.api(`/api/reviews/${reviewId}/helpful`, { method: 'POST' });
+        const countEl = btn.querySelector('.helpful-count');
+        if (countEl && res.data) countEl.textContent = String(res.data.helpfulVotes);
+        btn.classList.replace('btn-outline-secondary', 'btn-primary');
+        window.app.showToast('Thank you for your feedback!', 'success');
+      } catch (err) {
+        btn.disabled = false;
+        window.app.showToast(err.message, 'danger');
+      }
+    });
+  });
+
+  /* ------------------------- Stock alert subscriber ------------------------ */
+  document.querySelectorAll('.js-stock-alert-form').forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const productId = form.dataset.productId;
+      const emailInput = form.querySelector('.js-stock-alert-email');
+      const email = emailInput ? emailInput.value.trim() : '';
+      if (!email) return;
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const res = await window.app.api(`/api/products/${productId}/stock-alert`, {
+          method: 'POST',
+          body: JSON.stringify({ email }),
+        });
+        window.app.showToast(res.message || 'Subscribed to stock alert!', 'success');
+        form.innerHTML = '<div class="alert alert-success py-1 px-2 mb-0 small"><i class="bi bi-check-circle me-1"></i>You will be notified when restocked!</div>';
+      } catch (err) {
+        if (submitBtn) submitBtn.disabled = false;
+        window.app.showToast(err.message, 'danger');
+      }
+    });
+  });
+
+  /* -------------------------- Copy Link Share ----------------------------- */
+  document.querySelectorAll('.js-copy-link').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        window.app.showToast('Product link copied to clipboard!', 'success');
+      } catch (_e) {
+        window.app.showToast('Could not copy link.', 'info');
+      }
+    });
+  });
+
+  /* ---------------------- Mobile Sticky CTA Observer ----------------------- */
+  const stickyBar = document.getElementById('mobile-sticky-bar');
+  const purchaseRow = document.querySelector('.purchase-row');
+
+  if (stickyBar && purchaseRow && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
+            stickyBar.classList.remove('d-none');
+          } else {
+            stickyBar.classList.add('d-none');
+          }
+        });
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(purchaseRow);
   }
 })();

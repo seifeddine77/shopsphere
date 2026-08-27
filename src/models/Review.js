@@ -39,6 +39,7 @@ const reviewSchema = new mongoose.Schema(
       maxlength: 2000,
     },
     isApproved: { type: Boolean, default: false, index: true },
+    helpfulVotes: { type: Number, default: 0, min: 0 },
   },
   {
     timestamps: true,

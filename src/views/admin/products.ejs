@@ -64,7 +64,7 @@
                             <a href="/admin/products/<%= product._id %>/edit" class="btn btn-outline-primary btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>
                             <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
                                     data-endpoint="/api/products/<%= product._id %>"
-                                    data-confirm="Delete "<%- product.name %>" permanently?"
+                                    data-confirm="Delete '<%= product.name %>' permanently?"
                                     aria-label="Delete <%= product.name %>"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>

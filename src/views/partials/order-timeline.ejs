@@ -3,11 +3,11 @@
 <%
   const flow = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
   const labels = {
-    PENDING: 'Ordered',
-    CONFIRMED: 'Confirmed',
-    PROCESSING: 'Processing',
-    SHIPPED: 'Shipped',
-    DELIVERED: 'Delivered',
+    PENDING: t('orders.status_pending', 'Ordered'),
+    CONFIRMED: t('orders.status_confirmed', 'Confirmed'),
+    PROCESSING: t('orders.status_processing', 'Processing'),
+    SHIPPED: t('orders.status_shipped', 'Shipped'),
+    DELIVERED: t('orders.status_delivered', 'Delivered'),
   };
   const cancelled = order.orderStatus === 'CANCELLED';
   const currentIndex = flow.indexOf(order.orderStatus);
@@ -20,9 +20,9 @@
         <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" role="alert">
             <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
             <span>
-                This order was cancelled
+                <%= t('orders.order_cancelled', 'This order was cancelled') %>
                 <% const entry = historyByStatus.CANCELLED; %>
-                <% if (entry) { %>on <%= formatDate(entry.at) %><% } %>.
+                <% if (entry) { %><%= t('orders.placed_on', 'on') %> <%= formatDate(entry.at) %><% } %>.
             </span>
         </div>
     <% } else { %>
@@ -44,3 +44,4 @@
         </ol>
     <% } %>
 </div>
+

@@ -3,7 +3,7 @@
     <div class="auth-card auth-card-wide">
         <div class="text-center mb-4">
             <i class="bi bi-bag-heart-fill auth-brand-icon" aria-hidden="true"></i>
-            <h1 class="h4 fw-bold mt-2 mb-1">Create your account</h1>
+            <h1 class="h4 fw-bold mt-2 mb-1"><%= t('nav.register', 'Create your account') %></h1>
             <p class="text-secondary-emphasis small mb-0">Join ShopSphere in less than a minute</p>
         </div>
 
@@ -11,7 +11,7 @@
             <div class="row">
                 <div class="col-12 col-sm-6">
                     <div class="mb-3">
-                        <label for="register-first-name" class="form-label">First name</label>
+                        <label for="register-first-name" class="form-label"><%= t('profile.first_name', 'First name') %></label>
                         <input type="text" class="form-control" id="register-first-name" name="firstName"
                                autocomplete="given-name" required minlength="2" maxlength="50">
                         <div class="invalid-feedback" data-error-for="firstName"></div>
@@ -19,7 +19,7 @@
                 </div>
                 <div class="col-12 col-sm-6">
                     <div class="mb-3">
-                        <label for="register-last-name" class="form-label">Last name</label>
+                        <label for="register-last-name" class="form-label"><%= t('profile.last_name', 'Last name') %></label>
                         <input type="text" class="form-control" id="register-last-name" name="lastName"
                                autocomplete="family-name" required minlength="2" maxlength="50">
                         <div class="invalid-feedback" data-error-for="lastName"></div>
@@ -28,7 +28,7 @@
             </div>
 
             <div class="mb-3">
-                <label for="register-email" class="form-label">Email address</label>
+                <label for="register-email" class="form-label"><%= t('profile.email', 'Email address') %></label>
                 <input type="email" class="form-control" id="register-email" name="email"
                        autocomplete="email" required>
                 <div class="invalid-feedback" data-error-for="email"></div>
@@ -37,7 +37,7 @@
             <div class="row">
                 <div class="col-12 col-md-6">
                     <div class="mb-3">
-                        <label for="register-password" class="form-label">Password</label>
+                        <label for="register-password" class="form-label"><%= t('profile.current_password', 'Password') %></label>
                         <div class="input-group">
                             <input type="password" class="form-control" id="register-password" name="password"
                                    autocomplete="new-password" required minlength="8"
@@ -57,7 +57,7 @@
                 </div>
                 <div class="col-12 col-md-6">
                     <div class="mb-3">
-                        <label for="register-confirm-password" class="form-label">Confirm password</label>
+                        <label for="register-confirm-password" class="form-label"><%= t('profile.confirm_password', 'Confirm password') %></label>
                         <input type="password" class="form-control" id="register-confirm-password"
                                name="confirmPassword" autocomplete="new-password" required minlength="8">
                         <div class="invalid-feedback" data-error-for="confirmPassword"></div>
@@ -66,20 +66,21 @@
             </div>
 
             <div class="mb-3">
-                <label for="register-phone" class="form-label">Phone <span class="text-secondary-emphasis">(optional)</span></label>
+                <label for="register-phone" class="form-label"><%= t('checkout.phone', 'Phone') %> <span class="text-secondary-emphasis">(optional)</span></label>
                 <input type="tel" class="form-control" id="register-phone" name="phone"
                        autocomplete="tel" placeholder="+216 12 345 678">
                 <div class="invalid-feedback" data-error-for="phone"></div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
-                Create account
+                <%= t('nav.register', 'Create account') %>
             </button>
         </form>
 
         <p class="text-center small mt-4 mb-0">
             Already have an account?
-            <a href="/auth/login" class="link-primary fw-semibold text-decoration-none">Log in</a>
+            <a href="/auth/login" class="link-primary fw-semibold text-decoration-none"><%= t('nav.login', 'Log in') %></a>
         </p>
     </div>
 </section>
+

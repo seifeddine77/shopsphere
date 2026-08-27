@@ -1,0 +1,83 @@
+<%# ---------- AI Shopping Assistant Floating Trigger & Offcanvas ---------- %>
+
+<!-- Floating Action Button -->
+<button type="button" class="ai-floating-btn" id="ai-advisor-trigger"
+        data-bs-toggle="offcanvas" data-bs-target="#aiAdvisorOffcanvas"
+        aria-controls="aiAdvisorOffcanvas" aria-label="Open AI Shopping Assistant">
+    <span class="ai-floating-sparkle"><i class="bi bi-stars"></i></span>
+    <span class="ai-floating-label"><%= t('nav.ask_ai', 'Ask AI') %></span>
+</button>
+
+<!-- Offcanvas Drawer -->
+<div class="offcanvas <%= typeof dir !== 'undefined' && dir === 'rtl' ? 'offcanvas-start' : 'offcanvas-end' %> ai-advisor-offcanvas" tabindex="-1"
+     id="aiAdvisorOffcanvas" aria-labelledby="aiAdvisorLabel" style="width: 420px; max-width: 100vw;">
+    
+    <!-- Drawer Header -->
+    <div class="offcanvas-header border-bottom py-3 ai-header-gradient">
+        <div class="d-flex align-items-center gap-2">
+            <div class="ai-avatar-icon">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div>
+                <h5 class="offcanvas-title fw-bold mb-0 text-white" id="aiAdvisorLabel"><%= t('ai.advisor_title', 'ShopSphere AI') %></h5>
+                <span class="badge bg-white text-primary text-uppercase fw-semibold" style="font-size: 0.65rem;"><%= t('ai.subtitle', 'Shopping Advisor') %></span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-light rounded-circle p-1" id="ai-clear-history-btn" title="Clear chat history" aria-label="Clear chat history">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Drawer Body (Messages) -->
+    <div class="offcanvas-body p-3 d-flex flex-column" id="ai-chat-body">
+        <div class="ai-chat-messages flex-grow-1 overflow-y-auto mb-3 pe-1" id="ai-messages-container" role="log" aria-live="polite">
+            
+            <!-- Welcome greeting -->
+            <div class="ai-message ai-msg-bot mb-3">
+                <div class="ai-msg-content">
+                    <p class="mb-2"><%= t('ai.greeting', "👋 Hi there! I'm your AI Shopping Assistant. Tell me what you're looking for, your budget, or who you're buying for!") %></p>
+                    <div class="ai-quick-chips d-flex flex-wrap gap-1 mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary ai-chip" data-prompt="Find top-rated headphones under $100">🎧 Headphones &lt; $100</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary ai-chip" data-prompt="Show trending electronics deals">⚡ Trending Tech</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary ai-chip" data-prompt="Recommend gifts for fitness lovers">🏃 Fitness Gifts</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary ai-chip" data-prompt="What products have the highest discount?">🔥 Best Discounts</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Typing Shimmer (hidden by default) -->
+        <div class="ai-typing-indicator d-none mb-3 p-2 bg-body-tertiary rounded-3" id="ai-typing">
+            <div class="d-flex align-items-center gap-2 text-muted small">
+                <div class="spinner-grow spinner-grow-sm text-primary" role="status" style="width: 0.75rem; height: 0.75rem;"></div>
+                <span><%= t('ai.analyzing', 'Analyzing catalog & finding the best options...') %></span>
+            </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form id="ai-chat-form" class="mt-auto border-top pt-3">
+            <div class="input-group">
+                <input type="text" class="form-control" id="ai-chat-input"
+                       placeholder="<%= t('ai.input_placeholder', 'Ask anything (e.g. sneakers under $80)...') %>"
+                       autocomplete="off" maxlength="250" required
+                       aria-label="Ask AI Assistant">
+                <button type="button" class="btn btn-outline-secondary" id="ai-voice-btn" title="Voice input" aria-label="Voice search">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
+                <button class="btn btn-primary" type="submit" id="ai-chat-send-btn" aria-label="Send message">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 px-1 text-muted" style="font-size: 0.7rem;">
+                <span id="ai-voice-status" class="d-none text-danger fw-semibold"><i class="bi bi-record-circle me-1"></i>Listening...</span>
+                <span class="ms-auto"><%= t('ai.powered_by', 'Powered by ShopSphere AI Engine') %></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+

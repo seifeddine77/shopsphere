@@ -51,9 +51,10 @@ async function catalog(req, res, next) {
     }
 
     const { products, pagination } = await productService.listProducts(req.query);
-    const [categories, brands] = await Promise.all([
+    const [categories, brands, facetCounts] = await Promise.all([
       categoryService.listCategories(),
       brandService.listBrands(),
+      productService.getFacetCounts(),
     ]);
 
     res.render('products/index', {
@@ -65,6 +66,7 @@ async function catalog(req, res, next) {
       pagination,
       categories: categories.map((category) => category.toJSON()),
       brands: brands.map((brand) => brand.toJSON()),
+      facetCounts: facetCounts || { categoryCounts: {}, brandCounts: {} },
       current: req.query,
       baseQuery: baseQueryFrom(req.query),
     });

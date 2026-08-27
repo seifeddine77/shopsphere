@@ -1,14 +1,14 @@
 <%# ---------- Order history (/orders) ---------- %>
 
 <div class="container py-4">
-    <h1 class="h3 fw-bold mb-4">My orders</h1>
+    <h1 class="h3 fw-bold mb-4"><%= t('orders.title', 'My orders') %></h1>
 
     <% if (orders.length === 0) { %>
         <div class="empty-state">
             <i class="bi bi-box-seam empty-state-icon" aria-hidden="true"></i>
-            <p class="mb-1 fw-semibold">No orders yet</p>
+            <p class="mb-1 fw-semibold"><%= t('orders.empty', 'No orders yet') %></p>
             <p class="small text-secondary-emphasis">When you place an order it will show up here.</p>
-            <a href="/products" class="btn btn-primary mt-2 px-4">Browse products</a>
+            <a href="/products" class="btn btn-primary mt-2 px-4"><%= t('compare.browse_catalog', 'Browse products') %></a>
         </div>
     <% } else { %>
         <div class="order-list">
@@ -18,7 +18,7 @@
                         <strong class="me-2"><%= order.orderNumber %></strong>
                         <span class="text-secondary-emphasis small"><%= formatDate(order.createdAt) %></span>
                         <p class="small text-secondary-emphasis mb-0 mt-1">
-                            <%= order.items.reduce((sum, i) => sum + i.quantity, 0) %> item(s)
+                            <%= order.items.reduce((sum, i) => sum + i.quantity, 0) %> <%= t('cart.items', 'item(s)') %>
                             · <%= order.items[0].name %><%= order.items.length > 1 ? ` +${order.items.length - 1} more` : '' %>
                         </p>
                     </div>
@@ -38,3 +38,4 @@
         <%- include('../partials/pagination', { pagination, baseQuery }) %>
     <% } %>
 </div>
+

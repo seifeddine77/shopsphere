@@ -8,14 +8,14 @@
     <div class="container py-5">
         <div class="row align-items-center g-5 py-lg-4">
             <div class="col-12 col-lg-7">
-                <p class="text-uppercase small fw-semibold letter-spacing mb-2 hero-kicker">New season · New deals</p>
-                <h1 id="hero-heading" class="display-4 fw-bold mb-3">Discover products you'll love</h1>
+                <p class="text-uppercase small fw-semibold letter-spacing mb-2 hero-kicker"><%= t('home.hero_kicker', 'New season · New deals') %></p>
+                <h1 id="hero-heading" class="display-4 fw-bold mb-3"><%= t('home.hero_title', "Discover products you'll love") %></h1>
                 <p class="lead mb-4 hero-subtitle">
-                    Thousands of items, fast delivery and secure checkout - all in one place.
+                    <%= t('home.hero_subtitle', 'Thousands of items, fast delivery and secure checkout - all in one place.') %>
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="/products" class="btn btn-light btn-lg px-4 fw-semibold">Start shopping</a>
-                    <a href="/products?sort=newest" class="btn btn-outline-light btn-lg px-4">See what's new</a>
+                    <a href="/products" class="btn btn-light btn-lg px-4 fw-semibold"><%= t('home.start_shopping', 'Start shopping') %></a>
+                    <a href="/products?sort=newest" class="btn btn-outline-light btn-lg px-4"><%= t('home.see_whats_new', "See what's new") %></a>
                 </div>
             </div>
             <div class="col-12 col-lg-5 text-center d-none d-lg-block">
@@ -31,22 +31,22 @@
         <div class="col-12 col-md-4">
             <div class="value-card h-100">
                 <i class="bi bi-truck value-icon" aria-hidden="true"></i>
-                <h2 class="h6 fw-bold mt-3 mb-1">Fast shipping</h2>
-                <p class="small text-secondary-emphasis mb-0">Free delivery on orders above the threshold.</p>
+                <h2 class="h6 fw-bold mt-3 mb-1"><%= t('home.fast_shipping_title', 'Fast shipping') %></h2>
+                <p class="small text-secondary-emphasis mb-0"><%= t('home.fast_shipping_desc', 'Free delivery on orders above the threshold.') %></p>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="value-card h-100">
                 <i class="bi bi-shield-check value-icon" aria-hidden="true"></i>
-                <h2 class="h6 fw-bold mt-3 mb-1">Secure payment</h2>
-                <p class="small text-secondary-emphasis mb-0">Encrypted checkout. Your data stays yours.</p>
+                <h2 class="h6 fw-bold mt-3 mb-1"><%= t('home.secure_payment_title', 'Secure payment') %></h2>
+                <p class="small text-secondary-emphasis mb-0"><%= t('home.secure_payment_desc', 'Encrypted checkout. Your data stays yours.') %></p>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="value-card h-100">
                 <i class="bi bi-arrow-repeat value-icon" aria-hidden="true"></i>
-                <h2 class="h6 fw-bold mt-3 mb-1">Easy returns</h2>
-                <p class="small text-secondary-emphasis mb-0">Changed your mind? Returns are simple.</p>
+                <h2 class="h6 fw-bold mt-3 mb-1"><%= t('home.easy_returns_title', 'Easy returns') %></h2>
+                <p class="small text-secondary-emphasis mb-0"><%= t('home.easy_returns_desc', 'Changed your mind? Returns are simple.') %></p>
             </div>
         </div>
     </div>
@@ -54,7 +54,7 @@
 
 <%# ---------- Categories ---------- %>
 <section class="container my-5" aria-labelledby="categories-heading">
-    <h2 id="categories-heading" class="h3 fw-bold mb-4">Shop by category</h2>
+    <h2 id="categories-heading" class="h3 fw-bold mb-4"><%= t('home.shop_by_category', 'Shop by category') %></h2>
     <% if (categories.length === 0) { %>
         <div class="empty-state">
             <i class="bi bi-grid empty-state-icon" aria-hidden="true"></i>
@@ -75,9 +75,9 @@
 <%# ---------- Featured products ---------- %>
 <section class="container my-5" aria-labelledby="featured-heading">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 id="featured-heading" class="h3 fw-bold mb-0">Featured products</h2>
+        <h2 id="featured-heading" class="h3 fw-bold mb-0"><%= t('home.featured_products', 'Featured products') %></h2>
         <a href="/products?isFeatured=true" class="link-primary small text-decoration-none fw-semibold">
-            View all <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            <%= t('home.view_all', 'View all') %> <i class="bi bi-arrow-right" aria-hidden="true"></i>
         </a>
     </div>
     <% if (featuredProducts.length === 0) { %>
@@ -99,9 +99,9 @@
 <%# ---------- Latest products ---------- %>
 <section class="container mb-5" aria-labelledby="latest-heading">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 id="latest-heading" class="h3 fw-bold mb-0">Latest arrivals</h2>
+        <h2 id="latest-heading" class="h3 fw-bold mb-0"><%= t('home.latest_arrivals', 'Latest arrivals') %></h2>
         <a href="/products?sort=newest" class="link-primary small text-decoration-none fw-semibold">
-            View all <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            <%= t('home.view_all', 'View all') %> <i class="bi bi-arrow-right" aria-hidden="true"></i>
         </a>
     </div>
     <% if (latestProducts.length === 0) { %>
@@ -120,23 +120,121 @@
     <% } %>
 </section>
 
+<%# ---------- Flash Deals Promo Banner ---------- %>
+<section class="container my-5" aria-label="Limited Time Flash Deals">
+    <div class="card border-0 rounded-4 shadow-sm overflow-hidden text-white p-4 p-lg-5"
+         style="background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #6366f1 100%);">
+        <div class="row align-items-center g-4">
+            <div class="col-12 col-lg-7">
+                <span class="badge bg-warning text-dark fw-bold px-3 py-2 text-uppercase mb-3">
+                    <i class="bi bi-lightning-charge-fill me-1"></i><%= t('home.flash_sale', 'Limited Time Flash Sale') %>
+                </span>
+                <h2 class="display-6 fw-bold mb-2"><%= t('home.flash_title', 'Up to 50% Off On Electronics & Essentials') %></h2>
+                <p class="lead text-white-50 mb-4"><%= t('home.flash_desc', 'Grab top-tier noise-cancelling audio, modern tech, and premium accessories before stocks run out.') %></p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/products?sort=popular" class="btn btn-warning text-dark fw-bold px-4 py-2">
+                        <%= t('home.shop_deals', 'Claim Deals Now') %> &rarr;
+                    </a>
+                </div>
+            </div>
+            <div class="col-12 col-lg-5 text-center">
+                <div class="bg-white bg-opacity-10 p-4 rounded-4 backdrop-blur border border-white border-opacity-25">
+                    <p class="small text-uppercase tracking-wider fw-bold text-warning mb-2"><%= t('home.deals_expire', 'Flash Sale Countdown') %></p>
+                    <div class="d-flex justify-content-center gap-3 text-center">
+                        <div class="bg-dark bg-opacity-50 p-2 rounded-3" style="min-width: 60px;">
+                            <div class="fs-3 fw-bold text-white" id="flash-hours">14</div>
+                            <div class="small text-white-50" style="font-size: 0.7rem;">Hours</div>
+                        </div>
+                        <div class="fs-3 fw-bold align-self-center">:</div>
+                        <div class="bg-dark bg-opacity-50 p-2 rounded-3" style="min-width: 60px;">
+                            <div class="fs-3 fw-bold text-white" id="flash-mins">45</div>
+                            <div class="small text-white-50" style="font-size: 0.7rem;">Mins</div>
+                        </div>
+                        <div class="fs-3 fw-bold align-self-center">:</div>
+                        <div class="bg-dark bg-opacity-50 p-2 rounded-3" style="min-width: 60px;">
+                            <div class="fs-3 fw-bold text-white" id="flash-secs">20</div>
+                            <div class="small text-white-50" style="font-size: 0.7rem;">Secs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%# ---------- Customer Reviews & Social Proof Wall ---------- %>
+<section class="container my-5 py-3" aria-labelledby="testimonials-heading">
+    <div class="text-center mb-4">
+        <h2 id="testimonials-heading" class="h3 fw-bold mb-1"><%= t('home.testimonials_title', 'Loved by thousands of happy shoppers') %></h2>
+        <p class="text-secondary-emphasis small"><%= t('home.testimonials_subtitle', 'Verified reviews from real customers worldwide') %></p>
+    </div>
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 bg-body-tertiary rounded-4 p-4 h-100 shadow-sm">
+                <div class="text-warning mb-2">
+                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p class="small text-secondary-emphasis mb-3">"The delivery was incredibly fast and the Wireless Headphones exceeded my expectations! Crisp sound and sleek design."</p>
+                <div class="d-flex align-items-center gap-2 mt-auto">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">S</div>
+                    <div>
+                        <h6 class="mb-0 small fw-bold">Sarah M.</h6>
+                        <span class="text-success small" style="font-size: 0.7rem;"><i class="bi bi-patch-check-fill me-1"></i>Verified Buyer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 bg-body-tertiary rounded-4 p-4 h-100 shadow-sm">
+                <div class="text-warning mb-2">
+                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p class="small text-secondary-emphasis mb-3">"Flawless checkout experience with Stripe and the AI assistant recommended the exact budget laptop I needed."</p>
+                <div class="d-flex align-items-center gap-2 mt-auto">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">K</div>
+                    <div>
+                        <h6 class="mb-0 small fw-bold">Karim T.</h6>
+                        <span class="text-success small" style="font-size: 0.7rem;"><i class="bi bi-patch-check-fill me-1"></i>Verified Buyer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 bg-body-tertiary rounded-4 p-4 h-100 shadow-sm">
+                <div class="text-warning mb-2">
+                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p class="small text-secondary-emphasis mb-3">"Top-tier customer support and smooth returns policy. ShopSphere is now my go-to store for electronics and lifestyle gear."</p>
+                <div class="d-flex align-items-center gap-2 mt-auto">
+                    <div class="rounded-circle bg-indigo text-white d-flex align-items-center justify-content-center fw-bold bg-dark" style="width: 36px; height: 36px;">E</div>
+                    <div>
+                        <h6 class="mb-0 small fw-bold">Elena R.</h6>
+                        <span class="text-success small" style="font-size: 0.7rem;"><i class="bi bi-patch-check-fill me-1"></i>Verified Buyer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <%# ---------- Newsletter ---------- %>
 <section class="container mb-5" aria-labelledby="newsletter-heading">
     <div class="promo-banner text-center rounded-4 p-5">
-        <h2 id="newsletter-heading" class="h3 fw-bold mb-2">Join our newsletter</h2>
-        <p class="mb-4 promo-subtitle">Be first to hear about launches and exclusive offers.</p>
+        <h2 id="newsletter-heading" class="h3 fw-bold mb-2"><%= t('home.join_newsletter', 'Join our newsletter') %></h2>
+        <p class="mb-4 promo-subtitle"><%= t('home.newsletter_subtitle', 'Be first to hear about launches and exclusive offers.') %></p>
         <form class="row justify-content-center g-2 js-newsletter" data-source="home"
               aria-label="Newsletter subscription" novalidate>
             <div class="col-12 col-md-6 col-lg-4">
                 <label for="newsletter-email" class="visually-hidden">Email address</label>
                 <input type="email" class="form-control" id="newsletter-email" name="email"
-                       placeholder="you@example.com" required>
+                       placeholder="<%= t('home.email_placeholder', 'you@example.com') %>" required>
             </div>
             <div class="col-auto">
-                <button type="submit" class="btn btn-dark px-4 js-newsletter-submit">Subscribe</button>
+                <button type="submit" class="btn btn-dark px-4 js-newsletter-submit"><%= t('home.subscribe', 'Subscribe') %></button>
             </div>
             <p class="small mb-0 mt-2 w-100" role="status" aria-live="polite"
                data-newsletter-feedback></p>
         </form>
     </div>
 </section>
+

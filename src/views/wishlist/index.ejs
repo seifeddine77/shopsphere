@@ -4,18 +4,18 @@
 <div class="container py-4">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h1 class="h3 fw-bold mb-1">Your Wishlist</h1>
-            <p class="text-secondary-emphasis small mb-0"><%= products.length %> saved <%= products.length === 1 ? 'item' : 'items' %></p>
+            <h1 class="h3 fw-bold mb-1"><%= t('wishlist.title', 'Your Wishlist') %></h1>
+            <p class="text-secondary-emphasis small mb-0"><%= products.length %> <%= products.length === 1 ? t('cart.items_count', 'item').replace(/[()]/g, '') : t('cart.items_count_plural', 'items').replace(/[()]/g, '') %></p>
         </div>
-        <a href="/products" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i>Continue Shopping</a>
+        <a href="/products" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i><%= t('cart.continue_shopping', 'Continue Shopping') %></a>
     </div>
 
     <% if (products.length === 0) { %>
         <div class="empty-state text-center p-5 bg-body-tertiary rounded-4 border">
             <i class="bi bi-heartbreak empty-state-icon fs-1 text-muted mb-3 d-block" aria-hidden="true"></i>
-            <h2 class="h5 fw-bold mb-2">Your wishlist is empty</h2>
-            <p class="small text-secondary-emphasis max-w-md mx-auto mb-4">Tap the heart on any product to save it here and easily find it later.</p>
-            <a href="/products" class="btn btn-primary px-4">Discover products</a>
+            <h2 class="h5 fw-bold mb-2"><%= t('wishlist.empty_title', 'Your wishlist is empty') %></h2>
+            <p class="small text-secondary-emphasis max-w-md mx-auto mb-4"><%= t('wishlist.empty_desc', 'Save items you are interested in and they will appear here.') %></p>
+            <a href="/products" class="btn btn-primary px-4"><%= t('home.start_shopping', 'Discover products') %></a>
         </div>
     <% } else { %>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4">
@@ -28,8 +28,8 @@
                     <article class="product-card h-100 position-relative shadow-sm rounded-3 border bg-body">
                         <button type="button" class="btn btn-sm btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm border js-wishlist-remove z-2"
                                 data-product-id="<%= product._id %>"
-                                title="Remove from wishlist"
-                                aria-label="Remove <%= product.name %> from wishlist"
+                                title="<%= t('wishlist.remove', 'Remove') %>"
+                                aria-label="<%= t('wishlist.remove', 'Remove') %>"
                                 style="width: 2.25rem; height: 2.25rem; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
                             <i class="bi bi-x-lg text-danger fs-6" aria-hidden="true"></i>
                         </button>
@@ -42,7 +42,7 @@
                                 <span class="badge badge-discount">-<%= discountPercent(product) %>%</span>
                             <% } %>
                             <% if (outOfStock) { %>
-                                <span class="badge badge-out">Out of stock</span>
+                                <span class="badge badge-out"><%= t('product.out_of_stock', 'Out of stock') %></span>
                             <% } %>
                         </div>
 
@@ -69,11 +69,11 @@
                                 <% if (product.stock > 0) { %>
                                     <button type="button" class="btn btn-primary btn-sm w-100 js-move-to-cart"
                                             data-product-id="<%= product._id %>">
-                                        <i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Move to cart
+                                        <i class="bi bi-cart-plus me-1" aria-hidden="true"></i><%= t('wishlist.move_to_cart', 'Move to Cart') %>
                                     </button>
                                 <% } else { %>
                                     <button type="button" class="btn btn-secondary btn-sm w-100" disabled aria-disabled="true">
-                                        Out of stock
+                                        <%= t('product.out_of_stock', 'Out of stock') %>
                                     </button>
                                 <% } %>
                             </div>
@@ -84,3 +84,4 @@
         </div>
     <% } %>
 </div>
+

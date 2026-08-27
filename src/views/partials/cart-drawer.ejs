@@ -1,0 +1,61 @@
+<%# ---------- Slide-out Cart Drawer Offcanvas ---------- %>
+
+<div class="offcanvas <%= typeof dir !== 'undefined' && dir === 'rtl' ? 'offcanvas-start' : 'offcanvas-end' %> cart-drawer-offcanvas" tabindex="-1"
+     id="cartDrawerOffcanvas" aria-labelledby="cartDrawerLabel" style="width: 400px; max-width: 100vw;">
+    
+    <div class="offcanvas-header border-bottom py-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-bag-check fs-4 text-primary" aria-hidden="true"></i>
+            <h5 class="offcanvas-title fw-bold mb-0" id="cartDrawerLabel"><%= t('cart_drawer.title', 'Shopping Cart') %></h5>
+            <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill" id="cart-drawer-count">0</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body p-3 d-flex flex-column" id="cart-drawer-body">
+        
+        <!-- Empty state (hidden when items exist) -->
+        <div class="cart-drawer-empty text-center py-5 d-none" id="cart-drawer-empty">
+            <i class="bi bi-cart-x fs-1 text-muted mb-2 d-block" aria-hidden="true"></i>
+            <h6 class="fw-bold mb-1"><%= t('cart_drawer.empty', 'Your cart is empty') %></h6>
+            <p class="small text-muted mb-3"><%= t('cart.empty_desc', 'Discover great products and add them to your cart.') %></p>
+            <a href="/products" class="btn btn-sm btn-outline-primary" data-bs-dismiss="offcanvas"><%= t('cart.start_shopping', 'Start Shopping') %></a>
+        </div>
+
+        <!-- Free Shipping Progress Box -->
+        <div class="free-shipping-box mb-2 d-none" id="cart-drawer-free-shipping">
+            <div class="d-flex align-items-center justify-content-between mb-1 small fw-semibold">
+                <span id="cart-drawer-free-shipping-label"><i class="bi bi-truck text-primary me-1"></i><%= t('cart.free_shipping_hint', 'Free shipping at $100') %></span>
+                <span class="text-muted" id="cart-drawer-free-shipping-percent">0%</span>
+            </div>
+            <div class="free-shipping-progress">
+                <div class="free-shipping-progress-bar" id="cart-drawer-free-shipping-bar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Items container -->
+        <div class="cart-drawer-items flex-grow-1 overflow-y-auto pe-1" id="cart-drawer-items">
+            <!-- Dynamically populated via window.app.refreshCartDrawer() -->
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="cart-drawer-footer border-top pt-3 mt-auto" id="cart-drawer-footer">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-secondary-emphasis"><%= t('cart_drawer.subtotal', 'Subtotal') %></span>
+                <span class="fs-5 fw-bold text-primary" id="cart-drawer-subtotal">$0.00</span>
+            </div>
+            <p class="small text-muted mb-3" style="font-size: 0.75rem;"><%= t('cart_drawer.shipping_note', 'Shipping and discounts calculated at checkout.') %></p>
+            <div class="d-grid gap-2">
+                <a href="/checkout" class="btn btn-primary fw-semibold py-2">
+                    <i class="bi bi-shield-check me-1" aria-hidden="true"></i><%= t('cart_drawer.checkout_now', 'Checkout Now') %>
+                </a>
+                <a href="/cart" class="btn btn-outline-secondary btn-sm py-1">
+                    <%= t('cart_drawer.view_full_cart', 'View Full Cart') %>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+

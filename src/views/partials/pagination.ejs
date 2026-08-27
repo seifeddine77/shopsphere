@@ -24,8 +24,8 @@
             <a class="page-link"
                href="<%= urlFor(current - 1) %>"
                <%- pagination.hasPreviousPage ? '' : 'tabindex="-1" aria-disabled="true"' %>>
-                <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                <span class="visually-hidden">Previous</span>
+                <i class="bi <%= typeof dir !== 'undefined' && dir === 'rtl' ? 'bi-chevron-right' : 'bi-chevron-left' %>" aria-hidden="true"></i>
+                <span class="visually-hidden"><%= t('pagination.previous', 'Previous') %></span>
             </a>
         </li>
 
@@ -44,10 +44,11 @@
             <a class="page-link"
                href="<%= urlFor(current + 1) %>"
                <%- pagination.hasNextPage ? '' : 'tabindex="-1" aria-disabled="true"' %>>
-                <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                <span class="visually-hidden">Next</span>
+                <i class="bi <%= typeof dir !== 'undefined' && dir === 'rtl' ? 'bi-chevron-left' : 'bi-chevron-right' %>" aria-hidden="true"></i>
+                <span class="visually-hidden"><%= t('pagination.next', 'Next') %></span>
             </a>
         </li>
     </ul>
 </nav>
 <% } %>
+

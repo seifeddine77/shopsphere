@@ -20,7 +20,12 @@
                        value="<%= product ? product.name : '' %>">
             </div>
             <div class="col-12">
-                <label class="form-label" for="pf-description">Description * <span class="text-secondary-emphasis small">(min 10 chars)</span></label>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="form-label mb-0" for="pf-description">Description * <span class="text-secondary-emphasis small">(min 10 chars)</span></label>
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 d-flex align-items-center gap-1" id="btn-ai-generate-desc">
+                        <i class="bi bi-stars"></i> Generate with AI
+                    </button>
+                </div>
                 <textarea class="form-control" id="pf-description" name="description" rows="4" required
                           minlength="10"><%= product ? product.description : '' %></textarea>
             </div>
@@ -84,11 +89,11 @@
             </div>
             <div class="col-12 d-flex gap-4">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="pf-active" <%= !product || product.isActive ? 'checked' : '' %>>
+                    <input class="form-check-input" type="checkbox" role="switch" id="pf-active" name="isActive" <%= !product || product.isActive ? 'checked' : '' %>>
                     <label class="form-check-label" for="pf-active">Active (visible in store)</label>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="pf-featured" <%= product && product.isFeatured ? 'checked' : '' %>>
+                    <input class="form-check-input" type="checkbox" role="switch" id="pf-featured" name="isFeatured" <%= product && product.isFeatured ? 'checked' : '' %>>
                     <label class="form-check-label" for="pf-featured">Featured on home page</label>
                 </div>
             </div>

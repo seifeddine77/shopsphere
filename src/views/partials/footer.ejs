@@ -4,40 +4,40 @@
             <div class="col-12 col-md-4">
                 <h5 class="fw-bold mb-3"><i class="bi bi-bag-heart-fill me-2" aria-hidden="true"></i>ShopSphere</h5>
                 <p class="text-secondary-emphasis small mb-0">
-                    A modern e-commerce experience built with Node.js, Express, EJS and MongoDB.
+                    <%= t('footer.tagline', 'A modern, responsive e-commerce storefront powered by AI.') %>
                 </p>
             </div>
             <div class="col-6 col-md-2">
-                <h6 class="text-uppercase small fw-bold mb-3">Shop</h6>
+                <h6 class="text-uppercase small fw-bold mb-3"><%= t('footer.shop', 'Shop') %></h6>
                 <ul class="list-unstyled footer-links">
-                    <li><a href="/products">All products</a></li>
-                    <li><a href="/products?sort=newest">New arrivals</a></li>
-                    <li><a href="/products?isFeatured=true">Featured</a></li>
+                    <li><a href="/products"><%= t('catalog.title', 'All products') %></a></li>
+                    <li><a href="/products?sort=newest"><%= t('home.latest_arrivals', 'New arrivals') %></a></li>
+                    <li><a href="/products?isFeatured=true"><%= t('home.featured_products', 'Featured') %></a></li>
                 </ul>
             </div>
             <div class="col-6 col-md-2">
-                <h6 class="text-uppercase small fw-bold mb-3">Account</h6>
+                <h6 class="text-uppercase small fw-bold mb-3"><%= t('footer.account', 'Account') %></h6>
                 <ul class="list-unstyled footer-links">
-                    <li><a href="/auth/login">Login</a></li>
-                    <li><a href="/auth/register">Register</a></li>
-                    <li><a href="/profile">My profile</a></li>
+                    <li><a href="/auth/login"><%= t('nav.login', 'Login') %></a></li>
+                    <li><a href="/auth/register"><%= t('nav.register', 'Register') %></a></li>
+                    <li><a href="/profile"><%= t('nav.profile', 'My profile') %></a></li>
                 </ul>
             </div>
             <div class="col-12 col-md-4">
-                <h6 class="text-uppercase small fw-bold mb-3">Newsletter</h6>
-                <p class="small text-secondary-emphasis">Get updates on new products and promotions.</p>
+                <h6 class="text-uppercase small fw-bold mb-3"><%= t('footer.newsletter', 'Newsletter') %></h6>
+                <p class="small text-secondary-emphasis"><%= t('footer.newsletter_desc', 'Get updates on new products and promotions.') %></p>
                 <form class="newsletter-form d-flex gap-2 js-newsletter" data-source="footer"
                       aria-label="Newsletter subscription" novalidate>
                     <input type="email" class="form-control form-control-sm" name="email"
-                           placeholder="Your email address" aria-label="Email address" required>
-                    <button class="btn btn-primary btn-sm text-nowrap js-newsletter-submit" type="submit">Subscribe</button>
+                           placeholder="<%= t('home.email_placeholder', 'Your email address') %>" aria-label="Email address" required>
+                    <button class="btn btn-primary btn-sm text-nowrap js-newsletter-submit" type="submit"><%= t('home.subscribe', 'Subscribe') %></button>
                 </form>
             </div>
         </div>
         <hr class="footer-divider my-4">
         <div class="d-flex flex-column flex-md-row justify-content-between gap-2 small text-secondary-emphasis">
-            <span>&copy; <span data-current-year></span> ShopSphere. All rights reserved.</span>
-            <span>Built with Node.js · Express · EJS · MongoDB</span>
+            <span>&copy; <span data-current-year></span> ShopSphere. <%= t('footer.rights_reserved', 'All rights reserved.') %></span>
+            <span><%= t('footer.built_with', 'Built with Node.js · Express · EJS · MongoDB') %></span>
         </div>
     </div>
 </footer>

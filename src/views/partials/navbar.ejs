@@ -1,3 +1,9 @@
+<aside class="promo-bar py-1 px-3 text-center text-white bg-primary small fw-semibold d-flex align-items-center justify-content-center gap-2" id="promo-announcement-bar">
+    <span>🎉 Special Launch Deal: Use coupon <strong class="badge bg-white text-primary px-2">SAVE10</strong> for 10% off your entire order!</span>
+    <button type="button" class="btn-close btn-close-white p-1 ms-2" style="font-size: 0.65rem;"
+            onclick="document.getElementById('promo-announcement-bar').remove()" aria-label="Dismiss banner"></button>
+</aside>
+
 <nav class="navbar navbar-expand-lg sticky-top site-navbar" aria-label="Main navigation">
     <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
@@ -25,22 +31,54 @@
 
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
                 <li class="nav-item">
+                    <a class="nav-link position-relative js-nav-compare" href="/compare" id="nav-compare-btn" aria-label="Compare products" title="<%= t('product.compare', 'Compare products') %>">
+                        <i class="bi bi-arrow-left-right fs-5" aria-hidden="true"></i>
+                        <span class="badge-counter d-none" data-badge="compare" id="compare-count-badge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link position-relative" href="/wishlist" aria-label="Wishlist (<%= wishlistCount %> items)">
                         <i class="bi bi-heart fs-5" aria-hidden="true"></i>
                         <span class="badge-counter <%= wishlistCount > 0 ? '' : 'd-none' %>" data-badge="wishlist"><%= wishlistCount %></span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link position-relative" href="/cart" aria-label="Shopping cart (<%= cartCount %> items)">
+                    <button type="button" class="nav-link position-relative btn btn-link border-0 text-reset"
+                            data-bs-toggle="offcanvas" data-bs-target="#cartDrawerOffcanvas"
+                            onclick="window.app.refreshCartDrawer()"
+                            aria-label="Shopping cart (<%= cartCount %> items)">
                         <i class="bi bi-cart3 fs-5" aria-hidden="true"></i>
                         <span class="badge-counter <%= cartCount > 0 ? '' : 'd-none' %>" data-badge="cart"><%= cartCount %></span>
-                    </a>
+                    </button>
                 </li>
                 <li class="nav-item ms-lg-1">
                     <button type="button" class="theme-toggle-btn js-theme-toggle" aria-label="Toggle dark/light theme" title="Toggle theme">
                         <i class="bi bi-sun-fill theme-icon-light" aria-hidden="true"></i>
                         <i class="bi bi-moon-stars-fill theme-icon-dark d-none" aria-hidden="true"></i>
                     </button>
+                </li>
+
+                <%# Language Switcher Dropdown (EN, FR, AR) %>
+                <li class="nav-item dropdown ms-lg-1">
+                    <button class="nav-link dropdown-toggle btn btn-link border-0 text-reset d-flex align-items-center gap-1 py-1 px-2 rounded-2 hover-bg"
+                            type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                            title="Select Language">
+                        <span><%= typeof currentLangMeta !== 'undefined' ? currentLangMeta.flag : '🌐' %></span>
+                        <span class="small fw-bold text-uppercase d-none d-sm-inline"><%= typeof currentLang !== 'undefined' ? currentLang : 'en' %></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="languageDropdown" style="min-width: 140px;">
+                        <% (typeof supportedLangs !== 'undefined' ? supportedLangs : []).forEach((l) => { %>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 <%= (typeof currentLang !== 'undefined' && currentLang === l.code) ? 'active fw-bold' : '' %>"
+                                   href="?lang=<%= l.code %>">
+                                    <span><%= l.flag %> <%= l.name %></span>
+                                    <% if (typeof currentLang !== 'undefined' && currentLang === l.code) { %>
+                                        <i class="bi bi-check2"></i>
+                                    <% } %>
+                                </a>
+                            </li>
+                        <% }) %>
+                    </ul>
                 </li>
 
                 <% if (currentUser) { %>
@@ -53,26 +91,26 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                             <% if (currentUser.role === 'ADMIN') { %>
-                                <li><h6 class="dropdown-header">Administration</h6></li>
+                                <li><h6 class="dropdown-header"><%= t('nav.admin', 'Administration') %></h6></li>
                                 <li><a class="dropdown-item" href="/admin"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                                 <li><a class="dropdown-item" href="/admin/products"><i class="bi bi-box-seam me-2"></i>Products</a></li>
                                 <li><a class="dropdown-item" href="/admin/orders"><i class="bi bi-receipt me-2"></i>Orders</a></li>
                                 <li><hr class="dropdown-divider"></li>
                             <% } %>
-                            <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>My profile</a></li>
-                            <li><a class="dropdown-item" href="/orders"><i class="bi bi-box-seam me-2"></i>My orders</a></li>
+                            <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i><%= t('nav.profile', 'My profile') %></a></li>
+                            <li><a class="dropdown-item" href="/orders"><i class="bi bi-box-seam me-2"></i><%= t('nav.orders', 'My orders') %></a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <button class="dropdown-item text-danger" type="button" data-action="logout">
-                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    <i class="bi bi-box-arrow-right me-2"></i><%= t('nav.logout', 'Logout') %>
                                 </button>
                             </li>
                         </ul>
                     </li>
                 <% } else { %>
-                    <li class="nav-item"><a class="nav-link" href="/auth/login">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/auth/login"><%= t('nav.login', 'Login') %></a></li>
                     <li class="nav-item ms-lg-2">
-                        <a class="btn btn-primary btn-sm px-3" href="/auth/register">Register</a>
+                        <a class="btn btn-primary btn-sm px-3" href="/auth/register"><%= t('nav.register', 'Register') %></a>
                     </li>
                 <% } %>
             </ul>

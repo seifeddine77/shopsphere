@@ -95,7 +95,7 @@
                                 <td class="text-end">
                                     <button type="button" class="btn btn-outline-danger btn-sm js-delete-row"
                                             data-endpoint="/api/admin/coupons/<%= coupon._id %>"
-                                            data-confirm="Delete coupon "<%- coupon.code %>"?"
+                                            data-confirm="Delete coupon '<%= coupon.code %>'?"
                                             aria-label="Delete coupon <%= coupon.code %>"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>

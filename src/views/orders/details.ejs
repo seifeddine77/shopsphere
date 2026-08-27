@@ -6,25 +6,25 @@
         <div class="alert alert-success d-flex align-items-center gap-3" role="status">
             <i class="bi bi-check-circle-fill fs-3" aria-hidden="true"></i>
             <div>
-                <strong>Thank you! Your order has been placed.</strong><br>
-                <span class="small">A confirmation email is on its way. You can track the order below.</span>
+                <strong><%= t('orders.success_title', 'Thank you! Your order has been placed.') %></strong><br>
+                <span class="small"><%= t('orders.success_desc', 'A confirmation email is on its way. You can track the order below.') %></span>
             </div>
         </div>
     <% } %>
 
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
-            <h1 class="h3 fw-bold mb-1">Order <%= order.orderNumber %></h1>
+            <h1 class="h3 fw-bold mb-1"><%= t('orders.order', 'Order') %> <%= order.orderNumber %></h1>
             <p class="text-secondary-emphasis small mb-0">
-                Placed on <%= formatDate(order.createdAt) %> ·
-                Payment: <%= order.paymentMethod %> (<%= order.paymentStatus %>)
+                <%= t('orders.placed_on', 'Placed on') %> <%= formatDate(order.createdAt) %> ·
+                <%= t('checkout.payment_method', 'Payment') %>: <%= order.paymentMethod %> (<%= order.paymentStatus %>)
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
             <a href="/api/orders/<%= order._id %>/invoice<%= order.guestToken ? `?token=${order.guestToken}` : '' %>"
                class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
                target="_blank" rel="noopener">
-                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download Invoice
+                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> <%= t('orders.download_invoice', 'Download Invoice') %>
             </a>
             <span class="badge fs-6 px-3 py-2
                 <%= order.orderStatus === 'CANCELLED' ? 'bg-danger-subtle text-danger-emphasis'
@@ -42,7 +42,7 @@
         <% if (order.trackingNumber) { %>
             <p class="small mb-0 mt-3">
                 <i class="bi bi-truck me-1" aria-hidden="true"></i>
-                Tracking number: <code><%= order.trackingNumber %></code>
+                <%= t('orders.tracking_number', 'Tracking number') %>: <code><%= order.trackingNumber %></code>
             </p>
         <% } %>
     </section>
@@ -57,7 +57,7 @@
                 <div class="cart-info">
                     <a href="/products/<%= item.slug %>" class="cart-name"><%= item.name %></a>
                     <p class="small text-secondary-emphasis mb-0">
-                        SKU <%= item.sku %> · <%= formatPrice(item.unitPrice) %> × <%= item.quantity %>
+                        <%= t('product.sku', 'SKU') %> <%= item.sku %> · <%= formatPrice(item.unitPrice) %> × <%= item.quantity %>
                     </p>
                 </div>
                 <p class="fw-bold mb-0"><%= formatPrice(item.lineTotal) %></p>
@@ -69,7 +69,7 @@
         <%# ----------------------------- Address ----------------------------- %>
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card-panel h-100">
-                <h2 class="h6 fw-bold text-uppercase small letter-spacing mb-2">Shipping address</h2>
+                <h2 class="h6 fw-bold text-uppercase small letter-spacing mb-2"><%= t('checkout.shipping_address', 'Shipping address') %></h2>
                 <address class="small mb-0">
                     <%= order.shippingAddress.fullName %><br>
                     <%= order.shippingAddress.street %><br>
@@ -83,13 +83,13 @@
         <%# ------------------------------ Totals ------------------------------ %>
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card-panel h-100">
-                <h2 class="h6 fw-bold text-uppercase small letter-spacing mb-2">Totals</h2>
+                <h2 class="h6 fw-bold text-uppercase small letter-spacing mb-2"><%= t('checkout.order_summary', 'Totals') %></h2>
                 <dl class="checkout-totals mb-0 small">
-                    <dt class="d-flex justify-content-between"><span>Subtotal</span><span><%= formatPrice(order.subtotal) %></span></dt>
+                    <dt class="d-flex justify-content-between"><span><%= t('cart.subtotal', 'Subtotal') %></span><span><%= formatPrice(order.subtotal) %></span></dt>
                     <% if (order.discount > 0) { %>
-                        <dt class="d-flex justify-content-between"><span>Discount (<%= order.coupon.code %>)</span><span>&minus;<%= formatPrice(order.discount) %></span></dt>
+                        <dt class="d-flex justify-content-between"><span><%= t('checkout.discount', 'Discount') %> (<%= order.coupon.code %>)</span><span>&minus;<%= formatPrice(order.discount) %></span></dt>
                     <% } %>
-                    <dt class="d-flex justify-content-between"><span>Shipping</span><span><%= order.shippingCost === 0 ? 'Free' : formatPrice(order.shippingCost) %></span></dt>
+                    <dt class="d-flex justify-content-between"><span><%= t('cart.shipping', 'Shipping') %></span><span><%= order.shippingCost === 0 ? t('cart.shipping_free', 'Free') : formatPrice(order.shippingCost) %></span></dt>
                     <dt class="d-flex justify-content-between border-top pt-2 mt-2"><strong>Total</strong><strong class="fs-5"><%= formatPrice(order.total) %></strong></dt>
                 </dl>
             </div>
@@ -98,18 +98,18 @@
         <%# ---------------------------- Tracking ------------------------------ %>
         <div class="col-12 col-lg-4">
             <div class="card-panel h-100">
-                <h2 class="h6 fw-bold text-uppercase small letter-spacing mb-2">Tracking</h2>
+                <h2 class="h6 fw-bold text-uppercase small letter-spacing mb-2"><%= t('orders.tracking', 'Tracking') %></h2>
                 <% if (order.trackingNumber) { %>
-                    <p class="small mb-1">Carrier reference: <code><%= order.trackingNumber %></code></p>
+                    <p class="small mb-1"><%= t('orders.carrier_ref', 'Carrier reference') %>: <code><%= order.trackingNumber %></code></p>
                 <% } else { %>
-                    <p class="small text-secondary-emphasis mb-1">No tracking number yet.</p>
+                    <p class="small text-secondary-emphasis mb-1"><%= t('orders.no_tracking', 'No tracking number yet.') %></p>
                 <% } %>
-                <p class="small text-secondary-emphasis">Status updates appear in the timeline above.</p>
+                <p class="small text-secondary-emphasis"><%= t('orders.status_timeline', 'Status updates appear in the timeline above.') %></p>
 
                 <% if (['PENDING', 'CONFIRMED'].includes(order.orderStatus)) { %>
                     <button type="button" class="btn btn-outline-danger btn-sm js-cancel-order"
                             data-order-id="<%= order._id %>">
-                        Cancel this order
+                        <%= t('orders.cancel_order', 'Cancel this order') %>
                     </button>
                 <% } %>
             </div>
@@ -117,7 +117,8 @@
     </div>
 
     <div class="d-flex gap-2 mt-4">
-        <a href="/orders" class="btn btn-outline-secondary btn-sm">All my orders</a>
-        <a href="/products" class="btn btn-primary btn-sm">Continue shopping</a>
+        <a href="/orders" class="btn btn-outline-secondary btn-sm"><%= t('orders.title', 'All my orders') %></a>
+        <a href="/products" class="btn btn-primary btn-sm"><%= t('cart.continue_shopping', 'Continue shopping') %></a>
     </div>
 </div>
+
