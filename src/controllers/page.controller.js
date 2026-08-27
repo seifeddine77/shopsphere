@@ -81,7 +81,10 @@ async function catalog(req, res, next) {
 async function productDetails(req, res, next) {
   try {
     const product = await productService.getProduct(req.params.slug);
-    const related = await productService.getRelatedProducts(product, 4);
+    const [related, frequentlyBought] = await Promise.all([
+      productService.getRelatedProducts(product, 4),
+      productService.getFrequentlyBoughtTogether(product),
+    ]);
 
     // Reviews: approved list + the visitor's own review state
     const { reviews } = await reviewService.listApproved(product._id, { limit: '6' });
@@ -101,6 +104,7 @@ async function productDetails(req, res, next) {
       scripts: ['/js/product.js'],
       product: product.toJSON(),
       related: related.map((item) => item.toJSON()),
+      frequentlyBought,
       reviews: reviews.map((review) => review.toJSON()),
       reviewTotal: reviews.length,
       myReview: myReview ? myReview.toJSON() : null,
@@ -484,6 +488,127 @@ async function dynamicCmsPage(req, res, next) {
   }
 }
 
+/**
+ * GET /admin/menus - Navigation Menu Builder
+ */
+async function adminMenusPage(req, res, next) {
+  try {
+    const cmsService = require('../services/cms.service');
+    const [headerMenu, footerMenu] = await Promise.all([
+      cmsService.getMenu('HEADER'),
+      cmsService.getMenu('FOOTER'),
+    ]);
+
+    return adminRender(req, res, 'admin/menus', {
+      title: 'Menu Builder',
+      activeNav: 'menus',
+      headerMenu: headerMenu ? headerMenu.toJSON() : null,
+      footerMenu: footerMenu ? footerMenu.toJSON() : null,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * GET /admin/media - Media Asset Center
+ */
+async function adminMediaPage(req, res, next) {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const uploadsDir = path.join(__dirname, '../public/uploads');
+    let mediaFiles = [];
+
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      mediaFiles = files.filter((f) => /\.(jpg|jpeg|png|webp|svg)$/i.test(f)).map((file) => {
+        const stats = fs.statSync(path.join(uploadsDir, file));
+        return {
+          name: file,
+          url: `/uploads/${file}`,
+          size: `${Math.round(stats.size / 1024)} KB`,
+        };
+      });
+    }
+
+    return adminRender(req, res, 'admin/media', {
+      title: 'Media Library',
+      activeNav: 'media',
+      mediaFiles,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * GET /admin/customers - Customer RFM Intelligence & Segmentation
+ */
+async function adminCustomersPage(req, res, next) {
+  try {
+    const { Order } = require('../models/Order');
+    const User = require('../models/User');
+
+    const [users, orders] = await Promise.all([
+      User.find({ role: 'USER' }).sort({ createdAt: -1 }),
+      Order.find({ paymentStatus: 'PAID' }),
+    ]);
+
+    const userOrdersMap = new Map();
+    orders.forEach((o) => {
+      if (o.user) {
+        const uid = String(o.user);
+        if (!userOrdersMap.has(uid)) userOrdersMap.set(uid, []);
+        userOrdersMap.get(uid).push(o);
+      }
+    });
+
+    const segments = { vip: 0, highSpender: 0, regular: 0, prospects: 0 };
+    const customers = users.map((u) => {
+      const userOrders = userOrdersMap.get(String(u._id)) || [];
+      const orderCount = userOrders.length;
+      const totalSpent = userOrders.reduce((sum, ord) => sum + (ord.total || 0), 0);
+      const aov = orderCount > 0 ? totalSpent / orderCount : 0;
+
+      let segment = 'PROSPECT';
+      if (totalSpent >= 500) {
+        segment = 'VIP';
+        segments.vip++;
+      } else if (totalSpent >= 200) {
+        segment = 'HIGH_SPENDER';
+        segments.highSpender++;
+      } else if (orderCount > 0) {
+        segment = 'REGULAR';
+        segments.regular++;
+      } else {
+        segments.prospects++;
+      }
+
+      return {
+        _id: u._id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        email: u.email,
+        createdAt: u.createdAt,
+        orderCount,
+        totalSpent,
+        aov,
+        segment,
+      };
+    });
+
+    return adminRender(req, res, 'admin/customers', {
+      title: 'Customer Intelligence',
+      activeNav: 'customers',
+      customers,
+      segments,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   catalog,
   productDetails,
@@ -502,6 +627,9 @@ module.exports = {
   adminSettingsPage,
   adminSectionsPage,
   adminPagesPage,
+  adminMenusPage,
+  adminMediaPage,
+  adminCustomersPage,
   adminAuditLogsPage,
   taxonomyManagerPage,
   dynamicCmsPage,

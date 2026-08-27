@@ -44,9 +44,12 @@ router.get('/admin/coupons', ...adminPage(pageController.adminCouponsPage));
 router.get('/admin/reviews', ...adminPage(pageController.adminModerationPage));
 router.get('/admin/moderation', ...adminPage(pageController.adminModerationPage));
 router.get('/admin/users', ...adminPage(pageController.adminUsersPage));
+router.get('/admin/customers', ...adminPage(pageController.adminCustomersPage));
 router.get('/admin/settings', ...adminPage(pageController.adminSettingsPage));
 router.get('/admin/sections', ...adminPage(pageController.adminSectionsPage));
 router.get('/admin/pages', ...adminPage(pageController.adminPagesPage));
+router.get('/admin/menus', ...adminPage(pageController.adminMenusPage));
+router.get('/admin/media', ...adminPage(pageController.adminMediaPage));
 router.get('/admin/audit-logs', ...adminPage(pageController.adminAuditLogsPage));
 router.get('/admin/orders', requirePageAdmin, pageController.adminOrdersPage);
 

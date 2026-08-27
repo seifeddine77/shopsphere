@@ -342,6 +342,55 @@ async function compareProducts(identifiers = []) {
   };
 }
 
+async function getFrequentlyBoughtTogether(product) {
+  if (!product) return null;
+  const Order = require('../models/Order');
+
+  // Find orders containing this product
+  const orders = await Order.find({ 'items.product': product._id }).limit(20);
+  const coOccurringIds = new Map();
+
+  orders.forEach((o) => {
+    (o.items || []).forEach((item) => {
+      const pid = String(item.product);
+      if (pid !== String(product._id)) {
+        coOccurringIds.set(pid, (coOccurringIds.get(pid) || 0) + 1);
+      }
+    });
+  });
+
+  let complementaryProduct = null;
+  if (coOccurringIds.size > 0) {
+    const topId = [...coOccurringIds.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    complementaryProduct = await Product.findOne({ _id: topId, isActive: true, stock: { $gt: 0 } });
+  }
+
+  // Fallback to highest rated active item
+  if (!complementaryProduct) {
+    complementaryProduct = await Product.findOne({
+      _id: { $ne: product._id },
+      isActive: true,
+      stock: { $gt: 0 },
+    }).sort({ ratingsAverage: -1, price: 1 });
+  }
+
+  if (!complementaryProduct) return null;
+
+  const mainPrice = product.discountPrice != null ? product.discountPrice : product.price;
+  const compPrice = complementaryProduct.discountPrice != null ? complementaryProduct.discountPrice : complementaryProduct.price;
+  const combinedRegular = mainPrice + compPrice;
+  const bundleDiscount = 0.10; // 10% bundle discount
+  const bundlePrice = combinedRegular * (1 - bundleDiscount);
+
+  return {
+    mainProduct: product,
+    bundledProduct: complementaryProduct,
+    combinedRegular,
+    bundlePrice,
+    savings: combinedRegular - bundlePrice,
+  };
+}
+
 async function subscribeStockAlert(productId, email) {
   const cleanEmail = String(email || '').trim().toLowerCase();
   if (!cleanEmail || !cleanEmail.includes('@')) {
@@ -403,6 +452,7 @@ module.exports = {
   getSuggestions,
   getProduct,
   getRelatedProducts,
+  getFrequentlyBoughtTogether,
   createProduct,
   updateProduct,
   deleteProduct,

@@ -611,8 +611,23 @@
 
       // Update navbar compare button href
       const navBtn = document.getElementById('nav-compare-btn');
+      const compareUrl = list.length > 0 ? `/compare?ids=${list.join(',')}` : '/compare';
       if (navBtn) {
-        navBtn.href = list.length > 0 ? `/compare?ids=${list.join(',')}` : '/compare';
+        navBtn.href = compareUrl;
+      }
+
+      // Update Floating Dock Drawer
+      const dock = document.getElementById('compare-floating-dock');
+      const dockCount = document.getElementById('dock-compare-count');
+      const dockLink = document.getElementById('dock-compare-link');
+      if (dock) {
+        if (list.length > 0) {
+          dock.classList.remove('d-none');
+          if (dockCount) dockCount.textContent = `${list.length}/4`;
+          if (dockLink) dockLink.href = compareUrl;
+        } else {
+          dock.classList.add('d-none');
+        }
       }
 
       // Update button active state on page
@@ -627,6 +642,15 @@
         }
       });
     };
+
+    const dockClearBtn = document.getElementById('dock-clear-btn');
+    if (dockClearBtn) {
+      dockClearBtn.addEventListener('click', () => {
+        localStorage.removeItem(COMPARE_KEY);
+        updateCompareBadge();
+        window.app.showToast('Comparison cleared', 'info');
+      });
+    }
 
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.js-add-to-compare');
@@ -656,6 +680,32 @@
 
     updateCompareBadge();
   }
+
+  /* ------------------- 1-Click Order Reorder ---------------------------- */
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.js-reorder-btn');
+    if (!btn) return;
+    e.preventDefault();
+
+    const orderId = btn.dataset.orderId;
+    if (!orderId) return;
+
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Reordering...';
+
+    try {
+      const res = await window.app.api(`/api/orders/${orderId}/reorder`, { method: 'POST' });
+      window.app.showToast(res.message || 'Items added back to your cart!', 'success');
+      setTimeout(() => {
+        window.location.href = '/cart';
+      }, 700);
+    } catch (err) {
+      window.app.showToast(err.message || 'Reorder failed', 'danger');
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  });
 
   initRecentlyViewed();
   initCompare();

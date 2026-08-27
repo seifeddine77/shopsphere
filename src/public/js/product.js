@@ -241,4 +241,30 @@
     );
     observer.observe(purchaseRow);
   }
+
+  /* ------------------- Frequently Bought Together Bundle ------------------ */
+  const bundleBtn = document.querySelector('.js-add-bundle');
+  if (bundleBtn) {
+    bundleBtn.addEventListener('click', async () => {
+      const prod1 = bundleBtn.dataset.prod1;
+      const prod2 = bundleBtn.dataset.prod2;
+      bundleBtn.disabled = true;
+      bundleBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adding bundle...';
+      try {
+        await Promise.all([
+          window.app.api('/api/cart', { method: 'POST', body: JSON.stringify({ productId: prod1, quantity: 1 }) }),
+          window.app.api('/api/cart', { method: 'POST', body: JSON.stringify({ productId: prod2, quantity: 1 }) }),
+        ]);
+        window.app.showToast('Bundle added to cart with 10% savings!', 'success');
+        if (typeof window.app.openCartDrawer === 'function') {
+          window.app.openCartDrawer();
+        }
+      } catch (err) {
+        window.app.showToast(err.message || 'Failed to add bundle', 'danger');
+      } finally {
+        bundleBtn.disabled = false;
+        bundleBtn.innerHTML = '<i class="bi bi-bag-plus-fill me-1"></i> Add Both to Cart';
+      }
+    });
+  }
 })();

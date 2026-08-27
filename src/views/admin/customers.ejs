@@ -1,0 +1,89 @@
+<%# ---------- ADMIN: Customer Intelligence & Segmentation Studio ----------
+    Expects: customers[], segments %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-0">Customer Intelligence &amp; Segmentation</h1>
+        <p class="text-secondary-emphasis small mb-0">Customer Lifetime Value (LTV), purchasing behavior and RFM segments</p>
+    </div>
+</div>
+
+<%# Segmentation Summary Cards %>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="panel p-3 border-start border-primary border-4">
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">VIP Customers</small>
+            <h3 class="fw-bold mb-0 text-primary"><%= segments.vip %></h3>
+            <small class="text-muted">Spent &gt; $500</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="panel p-3 border-start border-success border-4">
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">High Spenders</small>
+            <h3 class="fw-bold mb-0 text-success"><%= segments.highSpender %></h3>
+            <small class="text-muted">Spent $200 - $500</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="panel p-3 border-start border-info border-4">
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Regular Buyers</small>
+            <h3 class="fw-bold mb-0 text-info"><%= segments.regular %></h3>
+            <small class="text-muted">1+ Orders</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="panel p-3 border-start border-secondary border-4">
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Prospects / New</small>
+            <h3 class="fw-bold mb-0 text-secondary"><%= segments.prospects %></h3>
+            <small class="text-muted">0 Orders placed</small>
+        </div>
+    </div>
+</div>
+
+<%# Customers Table %>
+<% if (customers.length === 0) { %>
+    <div class="empty-state">
+        <i class="bi bi-people empty-state-icon" aria-hidden="true"></i>
+        <p class="mb-0 fw-semibold">No customer accounts registered yet</p>
+    </div>
+<% } else { %>
+    <div class="table-responsive admin-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Customer</th>
+                    <th scope="col">Segment</th>
+                    <th scope="col">Orders</th>
+                    <th scope="col">Lifetime Value (LTV)</th>
+                    <th scope="col">Average Order (AOV)</th>
+                    <th scope="col">Registered</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% customers.forEach((c) => { %>
+                    <tr>
+                        <td>
+                            <strong><%= c.firstName %> <%= c.lastName %></strong><br>
+                            <small class="text-secondary-emphasis"><%= c.email %></small>
+                        </td>
+                        <td>
+                            <% if (c.segment === 'VIP') { %>
+                                <span class="badge bg-primary text-white"><i class="bi bi-gem me-1"></i>VIP</span>
+                            <% } else if (c.segment === 'HIGH_SPENDER') { %>
+                                <span class="badge bg-success-subtle text-success-emphasis">High Spender</span>
+                            <% } else if (c.segment === 'REGULAR') { %>
+                                <span class="badge bg-info-subtle text-info-emphasis">Regular</span>
+                            <% } else { %>
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis">Prospect</span>
+                            <% } %>
+                        </td>
+                        <td><strong><%= c.orderCount %></strong></td>
+                        <td class="fw-bold text-success">$<%= c.totalSpent.toFixed(2) %></td>
+                        <td>$<%= c.aov.toFixed(2) %></td>
+                        <td class="small text-secondary-emphasis"><%= formatDate(c.createdAt) %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+<% } %>

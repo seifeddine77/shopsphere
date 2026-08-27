@@ -16,5 +16,6 @@ router.get('/orders', protect, orderController.list);
 router.get('/orders/:id', optionalAuth, orderController.details);
 router.get('/orders/:id/invoice', optionalAuth, orderController.downloadInvoice);
 router.post('/orders/:id/cancel', protect, orderController.cancel);
+router.post('/orders/:id/reorder', protect, orderController.reorder);
 
 module.exports = router;

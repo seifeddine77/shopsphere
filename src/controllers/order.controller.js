@@ -100,4 +100,19 @@ async function cancel(req, res, next) {
   }
 }
 
-module.exports = { create, list, details, track, downloadInvoice, cancel };
+/**
+ * POST /api/orders/:id/reorder - reorder items into active cart
+ */
+async function reorder(req, res, next) {
+  try {
+    const result = await orderService.reorder(req.params.id, req.user._id);
+    return sendSuccess(res, {
+      data: result,
+      message: `${result.reorderedCount} item(s) added back to your cart!`,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { create, list, details, track, downloadInvoice, cancel, reorder };

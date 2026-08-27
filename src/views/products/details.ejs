@@ -415,6 +415,57 @@
         </div>
     </section>
 
+    <%# --------------------- Frequently Bought Together -------------------- %>
+    <% if (typeof frequentlyBought !== 'undefined' && frequentlyBought && frequentlyBought.bundledProduct) { %>
+        <section class="mt-5 p-4 rounded-4 border bg-body-tertiary shadow-sm" aria-labelledby="bundle-heading">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-warning text-dark fw-bold"><i class="bi bi-lightning-charge-fill me-1"></i>Bundle & Save 10%</span>
+                <h2 id="bundle-heading" class="h5 fw-bold mb-0">Frequently Bought Together</h2>
+            </div>
+
+            <div class="row align-items-center g-4">
+                <div class="col-12 col-lg-7">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-body" style="max-width: 220px;">
+                            <img src="<%= (product.images && product.images[0]) || '/images/placeholder.svg' %>" alt="<%= product.name %>" style="width: 50px; height: 50px; object-fit: contain;">
+                            <div class="min-w-0">
+                                <p class="small fw-bold mb-0 text-truncate"><%= product.name %></p>
+                                <span class="small text-primary fw-bold">$<%= (product.discountPrice != null ? product.discountPrice : product.price).toFixed(2) %></span>
+                            </div>
+                        </div>
+
+                        <span class="fs-4 fw-bold text-muted">+</span>
+
+                        <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-body" style="max-width: 220px;">
+                            <a href="/products/<%= frequentlyBought.bundledProduct.slug %>">
+                                <img src="<%= (frequentlyBought.bundledProduct.images && frequentlyBought.bundledProduct.images[0]) || '/images/placeholder.svg' %>" alt="<%= frequentlyBought.bundledProduct.name %>" style="width: 50px; height: 50px; object-fit: contain;">
+                            </a>
+                            <div class="min-w-0">
+                                <p class="small fw-bold mb-0 text-truncate"><a href="/products/<%= frequentlyBought.bundledProduct.slug %>" class="text-reset text-decoration-none"><%= frequentlyBought.bundledProduct.name %></a></p>
+                                <span class="small text-primary fw-bold">$<%= (frequentlyBought.bundledProduct.discountPrice != null ? frequentlyBought.bundledProduct.discountPrice : frequentlyBought.bundledProduct.price).toFixed(2) %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-5 text-lg-end">
+                    <div class="d-inline-block text-lg-end">
+                        <div class="mb-2">
+                            <span class="text-muted text-decoration-line-through small me-2">$<%= frequentlyBought.combinedRegular.toFixed(2) %></span>
+                            <span class="fs-4 fw-bold text-success">$<%= frequentlyBought.bundlePrice.toFixed(2) %></span>
+                            <small class="d-block text-success fw-semibold">You save $<%= frequentlyBought.savings.toFixed(2) %></small>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm px-4 js-add-bundle"
+                                data-prod-1="<%= product._id %>"
+                                data-prod-2="<%= frequentlyBought.bundledProduct._id %>">
+                            <i class="bi bi-bag-plus-fill me-1"></i> Add Both to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    <% } %>
+
     <%# ----------------------------- Related -------------------------------- %>
     <% if (related && related.length > 0) { %>
         <section class="mt-5" aria-labelledby="related-heading">

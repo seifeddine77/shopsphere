@@ -489,6 +489,30 @@ async function updateOrderStatus(orderId, payload) {
   ]);
 }
 
+/**
+ * Reorders all available items from a previous order into the user's active cart.
+ */
+async function reorder(orderId, userId) {
+  const order = await getOrderForUser(orderId, userId);
+  if (!order) throw notFound('Order not found');
+
+  let addedCount = 0;
+  for (const item of order.items) {
+    const product = await Product.findById(item.product);
+    if (product && product.isActive && product.stock > 0) {
+      const qtyToAdd = Math.min(item.quantity, product.stock);
+      await cartService.addToCart(userId, product._id, qtyToAdd);
+      addedCount++;
+    }
+  }
+
+  if (addedCount === 0) {
+    throw unprocessable('The items in this order are currently out of stock');
+  }
+
+  return { reorderedCount: addedCount };
+}
+
 module.exports = {
   createOrder,
   getUserOrders,
@@ -497,5 +521,6 @@ module.exports = {
   getGuestOrderByNumber,
   cancelOrder,
   updateOrderStatus,
+  reorder,
   TRANSITIONS,
 };
