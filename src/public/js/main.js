@@ -627,40 +627,100 @@
 
     window.app.updateCompareBadge = updateCompareBadge;
 
-    const dockClearBtn = document.getElementById('dock-clear-btn');
-    if (dockClearBtn) {
-      dockClearBtn.addEventListener('click', () => {
-        localStorage.removeItem(COMPARE_KEY);
-        updateCompareBadge();
-        window.app.showToast('Comparison cleared', 'info');
-      });
-    }
-
+    // Handle all click events for comparison system
     document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.js-add-to-compare');
-      if (!btn) return;
-      e.preventDefault();
+      // 1. Add / Remove Toggle from Product Card
+      const addBtn = e.target.closest('.js-add-to-compare');
+      if (addBtn) {
+        e.preventDefault();
+        const id = addBtn.dataset.productId;
+        if (!id) return;
 
-      const id = btn.dataset.productId;
-      if (!id) return;
-
-      let list = getCompareList();
-      if (list.includes(id)) {
-        list = list.filter((item) => item !== id);
-        localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
-        updateCompareBadge();
-        window.app.showToast('Product removed from comparison', 'info');
-      } else {
-        if (list.length >= 4) {
-          window.app.showToast('You can compare up to 4 products at a time.', 'warning');
-          return;
+        let list = getCompareList();
+        if (list.includes(id)) {
+          list = list.filter((item) => item !== id);
+          localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
+          updateCompareBadge();
+          window.app.showToast('Product removed from comparison', 'info');
+        } else {
+          if (list.length >= 4) {
+            window.app.showToast('You can compare up to 4 products at a time.', 'warning');
+            return;
+          }
+          list.push(id);
+          localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
+          updateCompareBadge();
+          window.app.showToast(`Product added to comparison (${list.length}/4). <a href="/compare?ids=${list.join(',')}" class="text-white text-decoration-underline ms-1 fw-bold">Compare now</a>`, 'primary');
         }
-        list.push(id);
-        localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
+        return;
+      }
+
+      // 2. Clear All Comparison (Table Clear All button, Reset button, or Dock Clear button)
+      const clearBtn = e.target.closest('.js-clear-comparison, #dock-clear-btn');
+      if (clearBtn) {
+        e.preventDefault();
+        localStorage.removeItem(COMPARE_KEY);
+        localStorage.removeItem('shopsphere_compare_ids');
         updateCompareBadge();
-        window.app.showToast(`Product added to comparison (${list.length}/4). <a href="/compare?ids=${list.join(',')}" class="text-white text-decoration-underline ms-1 fw-bold">Compare now</a>`, 'primary');
+        if (window.location.pathname.startsWith('/compare')) {
+          window.location.href = '/compare';
+        } else {
+          window.app.showToast('Comparison cleared', 'info');
+        }
+        return;
+      }
+
+      // 3. Remove Single Product from Comparison Table
+      const removeBtn = e.target.closest('.js-remove-compare-item');
+      if (removeBtn) {
+        e.preventDefault();
+        const pid = removeBtn.dataset.productId;
+        if (!pid) return;
+
+        let list = getCompareList();
+        list = list.filter((item) => item !== pid);
+        if (list.length > 0) {
+          localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
+        } else {
+          localStorage.removeItem(COMPARE_KEY);
+          localStorage.removeItem('shopsphere_compare_ids');
+        }
+        updateCompareBadge();
+
+        if (window.location.pathname.startsWith('/compare')) {
+          if (list.length > 0) {
+            window.location.href = `/compare?ids=${list.join(',')}`;
+          } else {
+            window.location.href = '/compare';
+          }
+        }
+        return;
       }
     });
+
+    // On-page compare synchronization (when visiting /compare)
+    if (window.location.pathname.startsWith('/compare')) {
+      const url = new URL(window.location.href);
+      const idsParam = url.searchParams.get('ids');
+      const renderedCards = document.querySelectorAll('[data-compare-product-id]');
+
+      if (renderedCards.length > 0) {
+        const validIds = Array.from(renderedCards).map((el) => el.dataset.compareProductId);
+        localStorage.setItem(COMPARE_KEY, JSON.stringify(validIds));
+        localStorage.removeItem('shopsphere_compare_ids');
+        updateCompareBadge();
+      } else if (idsParam) {
+        localStorage.removeItem(COMPARE_KEY);
+        localStorage.removeItem('shopsphere_compare_ids');
+        updateCompareBadge();
+        window.history.replaceState({}, '', '/compare');
+      } else {
+        const list = getCompareList();
+        if (list.length > 0) {
+          window.location.replace(`/compare?ids=${list.join(',')}`);
+        }
+      }
+    }
 
     // Auto-validate stored comparison IDs in background against database
     const validateStoredIds = async () => {
