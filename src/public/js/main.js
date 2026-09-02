@@ -662,7 +662,30 @@
       }
     });
 
+    // Auto-validate stored comparison IDs in background against database
+    const validateStoredIds = async () => {
+      const list = getCompareList();
+      if (!list.length) return;
+      try {
+        const res = await window.app.api(`/api/products/compare?ids=${list.join(',')}`);
+        if (res && res.data) {
+          const validProducts = res.data.products || [];
+          const validIds = validProducts.map((p) => String(p._id));
+          if (validIds.length !== list.length) {
+            if (validIds.length > 0) {
+              localStorage.setItem(COMPARE_KEY, JSON.stringify(validIds));
+            } else {
+              localStorage.removeItem(COMPARE_KEY);
+              localStorage.removeItem('shopsphere_compare_ids');
+            }
+            updateCompareBadge();
+          }
+        }
+      } catch (_err) {}
+    };
+
     updateCompareBadge();
+    setTimeout(validateStoredIds, 200);
   }
 
   /* ------------------- 1-Click Order Reorder ---------------------------- */

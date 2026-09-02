@@ -128,35 +128,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const url = new URL(window.location.href);
   const idsParam = url.searchParams.get('ids');
 
-  let stored = [];
-  try {
-    stored = JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
-  } catch (_e) {
-    stored = [];
-  }
-
-  // Case 1: Page has rendered comparison cards from server
+  // Case 1: Products were successfully rendered by the server
   const renderedCards = document.querySelectorAll('[data-compare-product-id]');
   if (renderedCards.length > 0) {
     const validIds = Array.from(renderedCards).map((el) => el.dataset.compareProductId);
     localStorage.setItem(COMPARE_KEY, JSON.stringify(validIds));
+    localStorage.removeItem('shopsphere_compare_ids');
     if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
-  } else if (stored.length > 0) {
-    // Case 2: No cards rendered, but localStorage has items -> load them
-    const storedParam = stored.join(',');
-    if (idsParam !== storedParam) {
-      window.location.replace('/compare?ids=' + storedParam);
-    }
-  } else if (idsParam) {
-    // Case 3: Stale IDs in URL and no valid items -> clean URL bar
+    return;
+  }
+
+  // Case 2: No products rendered
+  // If ids were in the URL and produced 0 products, the IDs are dead/obsolete -> purge them
+  if (idsParam) {
+    localStorage.removeItem(COMPARE_KEY);
+    localStorage.removeItem('shopsphere_compare_ids');
+    if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
     window.history.replaceState({}, '', '/compare');
+  } else {
+    // If no ids in URL, check if localStorage has stored IDs and navigate to them
+    try {
+      const stored = JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
+      if (stored.length > 0) {
+        window.location.replace('/compare?ids=' + stored.join(','));
+      }
+    } catch (_e) {}
   }
 
   // Clear all button handler
   document.querySelectorAll('.js-clear-comparison').forEach((btn) => {
     btn.addEventListener('click', () => {
       localStorage.removeItem(COMPARE_KEY);
+      localStorage.removeItem('shopsphere_compare_ids');
       if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
+      window.history.replaceState({}, '', '/compare');
       window.location.href = '/compare';
     });
   });
