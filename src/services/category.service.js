@@ -69,11 +69,15 @@ async function getCategory(idOrSlug) {
 
 async function createCategory(data) {
   let level = 0;
-  if (data.parent) {
+  if (data.parent && mongoose.isValidObjectId(data.parent)) {
     const parentCategory = await Category.findById(data.parent);
     if (parentCategory) {
       level = (parentCategory.level || 0) + 1;
+    } else {
+      data.parent = null;
     }
+  } else {
+    data.parent = null;
   }
   return Category.create({ ...data, level });
 }

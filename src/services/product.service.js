@@ -51,8 +51,17 @@ async function buildFilter(query, { includeInactive = false } = {}) {
   if (query.category) {
     const rawCats = Array.isArray(query.category)
       ? query.category
-      : String(query.category).split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-    const categories = await Category.find({ slug: { $in: rawCats } }).select('_id');
+      : String(query.category).split(',').map((s) => s.trim()).filter(Boolean);
+    const validObjectIds = rawCats.filter((c) => mongoose.isValidObjectId(c));
+    const slugList = rawCats.map((s) => s.toLowerCase());
+
+    const categories = await Category.find({
+      $or: [
+        { slug: { $in: slugList } },
+        ...(validObjectIds.length > 0 ? [{ _id: { $in: validObjectIds } }] : []),
+      ],
+    }).select('_id');
+
     if (categories.length === 0) return { _id: { $exists: false } };
     filter.category = categories.length === 1 ? categories[0]._id : { $in: categories.map((c) => c._id) };
   }
@@ -60,8 +69,17 @@ async function buildFilter(query, { includeInactive = false } = {}) {
   if (query.brand) {
     const rawBrands = Array.isArray(query.brand)
       ? query.brand
-      : String(query.brand).split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-    const brands = await Brand.find({ slug: { $in: rawBrands } }).select('_id');
+      : String(query.brand).split(',').map((s) => s.trim()).filter(Boolean);
+    const validBrandObjectIds = rawBrands.filter((b) => mongoose.isValidObjectId(b));
+    const brandSlugList = rawBrands.map((s) => s.toLowerCase());
+
+    const brands = await Brand.find({
+      $or: [
+        { slug: { $in: brandSlugList } },
+        ...(validBrandObjectIds.length > 0 ? [{ _id: { $in: validBrandObjectIds } }] : []),
+      ],
+    }).select('_id');
+
     if (brands.length === 0) return { _id: { $exists: false } };
     filter.brand = brands.length === 1 ? brands[0]._id : { $in: brands.map((b) => b._id) };
   }
