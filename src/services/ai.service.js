@@ -488,7 +488,7 @@ async function generateProductCopy({ name, categoryName, keywords, lang = 'en' }
  * Admin Executive AI Copilot: analyzes live database metrics and provides actionable insights.
  */
 async function adminCopilot(prompt = '', lang = 'en') {
-  const Order = require('../models/Order');
+  const { Order } = require('../models/Order');
   const User = require('../models/User');
 
   const [totalProducts, lowStockProducts, outOfStockProducts, orders, totalUsers, pendingReviews] = await Promise.all([

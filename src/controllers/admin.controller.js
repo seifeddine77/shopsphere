@@ -187,7 +187,7 @@ async function globalSearch(req, res, next) {
     }
 
     const Product = require('../models/Product');
-    const Order = require('../models/Order');
+    const { Order } = require('../models/Order');
     const User = require('../models/User');
     const Category = require('../models/Category');
     const Coupon = require('../models/Coupon');

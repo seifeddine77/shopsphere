@@ -518,19 +518,29 @@ async function adminMediaPage(req, res, next) {
     const fs = require('fs');
     const path = require('path');
     const uploadsDir = path.join(__dirname, '../public/uploads');
-    let mediaFiles = [];
+    const mediaFiles = [];
 
-    if (fs.existsSync(uploadsDir)) {
-      const files = fs.readdirSync(uploadsDir);
-      mediaFiles = files.filter((f) => /\.(jpg|jpeg|png|webp|svg)$/i.test(f)).map((file) => {
-        const stats = fs.statSync(path.join(uploadsDir, file));
-        return {
-          name: file,
-          url: `/uploads/${file}`,
-          size: `${Math.round(stats.size / 1024)} KB`,
-        };
-      });
+    function scanDir(dir, relativePrefix = '/uploads') {
+      if (!fs.existsSync(dir)) return;
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          scanDir(fullPath, `${relativePrefix}/${entry.name}`);
+        } else if (/\.(jpg|jpeg|png|webp|svg)$/i.test(entry.name)) {
+          const stats = fs.statSync(fullPath);
+          mediaFiles.push({
+            name: entry.name,
+            url: `${relativePrefix}/${entry.name}`,
+            size: `${Math.round(stats.size / 1024)} KB`,
+            updatedAt: stats.mtime,
+          });
+        }
+      }
     }
+
+    scanDir(uploadsDir);
+    mediaFiles.sort((a, b) => b.updatedAt - a.updatedAt);
 
     return adminRender(req, res, 'admin/media', {
       title: 'Media Library',

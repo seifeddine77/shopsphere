@@ -194,13 +194,106 @@ async function seedProducts() {
 
 async function upsertCoupons() {
   for (const coupon of COUPONS) {
-     
     const exists = await Coupon.findOne({ code: coupon.code });
     if (!exists) {
-       
       await Coupon.create(coupon);
       console.log(`  + coupon "${coupon.code}"`);
     }
+  }
+}
+
+async function upsertCms() {
+  const Section = require('../models/Section');
+  const Page = require('../models/Page');
+  const Menu = require('../models/Menu');
+
+  // 1. Default CMS Pages
+  const DEFAULT_PAGES = [
+    {
+      title: 'About Us',
+      slug: 'about-us',
+      summary: 'Discover the story behind ShopSphere.',
+      content: '<h2>Welcome to ShopSphere</h2><p>ShopSphere is a next-generation dynamic e-commerce platform delivering high quality products, fast shipping, and exceptional customer support.</p><p>Founded in 2026, our mission is to empower shoppers worldwide with verified quality and seamless digital retail experiences.</p>',
+      seoTitle: 'About Us | ShopSphere',
+      seoDescription: 'Learn more about ShopSphere and our mission.',
+    },
+    {
+      title: 'Terms of Service',
+      slug: 'terms-of-service',
+      summary: 'Read our store policies, ordering rules and customer rights.',
+      content: '<h2>Terms of Service</h2><p>By accessing or using ShopSphere, you agree to be bound by these terms. All purchases are protected by our 30-day money-back guarantee.</p>',
+      seoTitle: 'Terms of Service | ShopSphere',
+    },
+    {
+      title: 'Privacy Policy',
+      slug: 'privacy-policy',
+      summary: 'How we protect and secure your personal data.',
+      content: '<h2>Privacy & Security</h2><p>We respect your privacy. Your payment information is processed with end-to-end encryption and is never stored on our servers in plain text.</p>',
+      seoTitle: 'Privacy Policy | ShopSphere',
+    },
+  ];
+
+  for (const p of DEFAULT_PAGES) {
+    const exists = await Page.findOne({ slug: p.slug });
+    if (!exists) {
+      await Page.create(p);
+      console.log(`  + CMS Page: /p/${p.slug}`);
+    }
+  }
+
+  // 2. Default Menus
+  const headerMenu = await Menu.findOne({ location: 'HEADER' });
+  if (!headerMenu) {
+    await Menu.create({
+      name: 'Main Header Navigation',
+      location: 'HEADER',
+      items: [
+        { label: 'Home', url: '/' },
+        { label: 'Shop Catalog', url: '/products' },
+        { label: 'About Us', url: '/p/about-us' },
+        { label: 'Track Order', url: '/orders/track' },
+      ],
+    });
+    console.log('  + Header Navigation Menu');
+  }
+
+  const footerMenu = await Menu.findOne({ location: 'FOOTER' });
+  if (!footerMenu) {
+    await Menu.create({
+      name: 'Footer Quick Links',
+      location: 'FOOTER',
+      items: [
+        { label: 'About ShopSphere', url: '/p/about-us' },
+        { label: 'Terms of Service', url: '/p/terms-of-service' },
+        { label: 'Privacy Policy', url: '/p/privacy-policy' },
+        { label: 'Order Tracking', url: '/orders/track' },
+      ],
+    });
+    console.log('  + Footer Navigation Menu');
+  }
+
+  // 3. Default Homepage Sections
+  const secCount = await Section.countDocuments();
+  if (secCount === 0) {
+    await Section.create([
+      {
+        type: 'HERO',
+        title: 'Spring Season Mega Sale',
+        subtitle: 'Elevate your lifestyle with our premium curated collection',
+        order: 1,
+        isActive: true,
+        config: { buttonText: 'Explore Catalog', buttonLink: '/products', badge: 'New Season 2026' },
+      },
+      {
+        type: 'FLASH_SALE',
+        title: 'Exclusive Flash Deals',
+        subtitle: 'Limited time offers with up to 30% off',
+        order: 2,
+        isActive: true,
+        config: { discountText: 'Save 30% Today', buttonText: 'Shop Deals', buttonLink: '/products?isFeatured=true' },
+      },
+    ]);
+    console.log('  + Homepage Dynamic Sections');
   }
 }
 
@@ -237,6 +330,7 @@ async function main() {
   await upsertTaxonomy(Brand, BRANDS, 'brand');
   await seedProducts();
   await upsertCoupons();
+  await upsertCms();
 
   console.log('\nDone. Demo accounts:');
   ACCOUNTS.forEach((account) => {

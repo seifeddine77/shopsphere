@@ -344,7 +344,7 @@ async function compareProducts(identifiers = []) {
 
 async function getFrequentlyBoughtTogether(product) {
   if (!product) return null;
-  const Order = require('../models/Order');
+  const { Order } = require('../models/Order');
 
   // Find orders containing this product
   const orders = await Order.find({ 'items.product': product._id }).limit(20);
