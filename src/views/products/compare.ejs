@@ -128,19 +128,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const url = new URL(window.location.href);
   const idsParam = url.searchParams.get('ids');
 
-  // Case 1: Products were successfully rendered by the server
+  // Sync valid rendered products with localStorage
   const renderedCards = document.querySelectorAll('[data-compare-product-id]');
   if (renderedCards.length > 0) {
     const validIds = Array.from(renderedCards).map((el) => el.dataset.compareProductId);
     localStorage.setItem(COMPARE_KEY, JSON.stringify(validIds));
     localStorage.removeItem('shopsphere_compare_ids');
     if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
-    return;
-  }
-
-  // Case 2: No products rendered
-  // If ids were in the URL and produced 0 products, the IDs are dead/obsolete -> purge them
-  if (idsParam) {
+  } else if (idsParam) {
+    // If ids were in the URL and produced 0 products, purge dead IDs
     localStorage.removeItem(COMPARE_KEY);
     localStorage.removeItem('shopsphere_compare_ids');
     if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
@@ -154,35 +150,40 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (_e) {}
   }
+});
 
-  // Clear all button handler
-  document.querySelectorAll('.js-clear-comparison').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      localStorage.removeItem(COMPARE_KEY);
-      localStorage.removeItem('shopsphere_compare_ids');
-      if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
-      window.history.replaceState({}, '', '/compare');
-      window.location.href = '/compare';
-    });
-  });
+// Delegated click listener for Clear All and Remove Item
+document.addEventListener('click', (e) => {
+  const COMPARE_KEY = 'shopsphere_compare_items';
+
+  // Clear all button
+  const clearBtn = e.target.closest('.js-clear-comparison');
+  if (clearBtn) {
+    e.preventDefault();
+    localStorage.removeItem(COMPARE_KEY);
+    localStorage.removeItem('shopsphere_compare_ids');
+    if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
+    window.location.href = '/compare';
+    return;
+  }
 
   // Remove single product from comparison table
-  document.querySelectorAll('.js-remove-compare-item').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const pid = btn.dataset.productId;
-      try {
-        let current = JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
-        current = current.filter((id) => id !== pid);
-        localStorage.setItem(COMPARE_KEY, JSON.stringify(current));
-        if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
-        if (current.length > 0) {
-          window.location.href = '/compare?ids=' + current.join(',');
-        } else {
-          window.location.href = '/compare';
-        }
-      } catch (_e) {}
-    });
-  });
+  const removeBtn = e.target.closest('.js-remove-compare-item');
+  if (removeBtn) {
+    e.preventDefault();
+    const pid = removeBtn.dataset.productId;
+    try {
+      let current = JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
+      current = current.filter((id) => id !== pid);
+      localStorage.setItem(COMPARE_KEY, JSON.stringify(current));
+      if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
+      if (current.length > 0) {
+        window.location.href = '/compare?ids=' + current.join(',');
+      } else {
+        window.location.href = '/compare';
+      }
+    } catch (_e) {}
+  }
 });
 </script>
 
