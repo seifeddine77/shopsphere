@@ -141,13 +141,64 @@
     });
   }
 
+  // AI Product Description Generator
+  const aiDescBtn = document.getElementById('btn-ai-generate-desc');
+  if (aiDescBtn) {
+    aiDescBtn.addEventListener('click', async () => {
+      const nameInput = document.getElementById('pf-name');
+      const name = nameInput ? nameInput.value.trim() : '';
+      if (!name) {
+        window.app.showToast('Please enter a product name first.', 'info');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      aiDescBtn.disabled = true;
+      aiDescBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Generating...';
+      try {
+        const catSelect = document.getElementById('pf-category');
+        const catName = catSelect && catSelect.selectedOptions[0] ? catSelect.selectedOptions[0].textContent.trim().replace(/^—\s*/, '') : 'General';
+        const res = await window.app.api('/api/ai/generate-product', {
+          method: 'POST',
+          body: JSON.stringify({ name, category: catName }),
+        });
+        if (res.data && res.data.description) {
+          const descInput = document.getElementById('pf-description');
+          if (descInput) descInput.value = res.data.description;
+          window.app.showToast('AI description generated!', 'success');
+        }
+      } catch (err) {
+        window.app.showToast(err.message || 'AI generation failed', 'danger');
+      } finally {
+        aiDescBtn.disabled = false;
+        aiDescBtn.innerHTML = '<i class="bi bi-stars"></i> Generate with AI';
+      }
+    });
+  }
+
   document.querySelectorAll('form[data-endpoint]').forEach((form) => {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      if (!form.reportValidity()) return;
 
-      const submitButton = form.querySelector('.js-submit-form');
-      submitButton.disabled = true;
+      // Auto-switch to tab containing invalid input if any
+      if (!form.checkValidity()) {
+        const invalidEl = form.querySelector(':invalid');
+        if (invalidEl) {
+          const tabPane = invalidEl.closest('.tab-pane');
+          if (tabPane) {
+            const tabBtn = document.querySelector(`[data-bs-target="#${tabPane.id}"]`);
+            if (tabBtn && window.bootstrap) {
+              const tab = new window.bootstrap.Tab(tabBtn);
+              tab.show();
+            }
+          }
+          invalidEl.focus();
+          form.reportValidity();
+        }
+        return;
+      }
+
+      const submitButton = form.querySelector('.js-submit-form') || form.querySelector('button[type="submit"]');
+      if (submitButton) submitButton.disabled = true;
 
       // Build payload from named fields
       const payload = {};
@@ -165,6 +216,7 @@
         } else if (!payload.images) {
           payload.images = [];
         }
+        delete payload.slug;
       }
 
       // Type coercion for known numeric/optional fields
@@ -193,10 +245,12 @@
           method: form.dataset.method || 'POST',
           body: JSON.stringify(payload),
         });
-        window.app.showToast('Saved', 'success');
-        window.location.href = form.dataset.redirect || window.location.pathname;
+        window.app.showToast('Saved successfully', 'success');
+        setTimeout(() => {
+          window.location.href = form.dataset.redirect || window.location.pathname;
+        }, 300);
       } catch (error) {
-        submitButton.disabled = false;
+        if (submitButton) submitButton.disabled = false;
         const fieldErrors = (error.payload && error.payload.errors) || [];
         const detail = fieldErrors.map((e2) => e2.message).join(' ');
         window.app.showToast(detail ? `${error.message}: ${detail}` : error.message, 'danger');

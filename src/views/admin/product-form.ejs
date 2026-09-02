@@ -53,7 +53,7 @@
                         <select class="form-select" id="pf-category" name="category" required>
                             <option value="">Choose category...</option>
                             <% categories.forEach((category) => { %>
-                                <option value="<%= category._id %>" <%= product && String(product.category && product.category._id || product.category) === category._id ? 'selected' : '' %>><%= '— '.repeat(category.level || 0) %><%= category.name %></option>
+                                <option value="<%= category._id %>" <%= product && String(product.category && product.category._id || product.category) === String(category._id) ? 'selected' : '' %>><%= '— '.repeat(category.level || 0) %><%= category.name %></option>
                             <% }) %>
                         </select>
                     </div>
@@ -62,7 +62,7 @@
                         <select class="form-select" id="pf-brand" name="brand" required>
                             <option value="">Choose brand...</option>
                             <% brands.forEach((brand) => { %>
-                                <option value="<%= brand._id %>" <%= product && String(product.brand && product.brand._id || product.brand) === brand._id ? 'selected' : '' %>><%= brand.name %></option>
+                                <option value="<%= brand._id %>" <%= product && String(product.brand && product.brand._id || product.brand) === String(brand._id) ? 'selected' : '' %>><%= brand.name %></option>
                             <% }) %>
                         </select>
                     </div>
