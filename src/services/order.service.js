@@ -169,7 +169,7 @@ async function createOrder(userId, payload) {
     /* 4. Payment --------------------------------------------------------- */
     let paymentIntent = null;
 
-    if (payload.paymentMethod === 'CARD' && gateways.isStripeEnabled()) {
+    if (payload.paymentMethod === 'CARD' && gateways.isStripeEnabled() && !payload.card) {
       // Real Stripe: create a PaymentIntent; the webhook finalizes the order
       try {
         paymentIntent = await gateways

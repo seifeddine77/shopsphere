@@ -72,6 +72,16 @@ if (config.stripeSecretKey) {
 
   stripeGateway = {
     name: 'stripe',
+    async processPayment({ amount, card }) {
+      if (card) {
+        return fakeCardGateway.processPayment({ card, amount });
+      }
+      return {
+        status: 'PENDING',
+        transactionId: `stripe_${crypto.randomBytes(8).toString('hex')}`,
+        message: 'Stripe PaymentIntent pending',
+      };
+    },
     async createIntent(amount, orderNumber) {
       const intent = await stripeClient.paymentIntents.create({
         amount: Math.round(amount * 100), // cents

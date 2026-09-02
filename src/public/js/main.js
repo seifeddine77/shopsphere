@@ -689,6 +689,18 @@
     }
   });
 
+  /* ---------------------- Global Logout Handler -------------------------- */
+  document.addEventListener('click', async (event) => {
+    const logoutBtn = event.target.closest('[data-action="logout"], .js-logout-btn, a[href="/logout"], a[href="/auth/logout"]');
+    if (logoutBtn) {
+      event.preventDefault();
+      try {
+        await window.app.api('/api/auth/logout', { method: 'POST' });
+      } catch (_e) {}
+      window.location.href = '/';
+    }
+  });
+
   initRecentlyViewed();
   initCompare();
 })();

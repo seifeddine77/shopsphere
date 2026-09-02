@@ -169,6 +169,11 @@ function viewTitle(view) {
 router.get('/auth/login', ...redirectIfAuthenticated('auth/login'));
 router.get('/auth/register', ...redirectIfAuthenticated('auth/register'));
 
+router.get(['/logout', '/auth/logout'], (req, res) => {
+  res.clearCookie('token', { path: '/' });
+  res.redirect('/');
+});
+
 router.get('/auth/forgot-password', (req, res) => {
   res.render('auth/forgot-password', {
     title: 'Forgot password',
