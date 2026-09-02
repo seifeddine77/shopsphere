@@ -622,8 +622,10 @@
           btn.classList.remove('btn-primary', 'text-white');
           btn.classList.add('btn-outline-secondary');
         }
-      window.app.updateCompareBadge = updateCompareBadge;
+      });
     };
+
+    window.app.updateCompareBadge = updateCompareBadge;
 
     const dockClearBtn = document.getElementById('dock-clear-btn');
     if (dockClearBtn) {
@@ -656,7 +658,7 @@
         list.push(id);
         localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
         updateCompareBadge();
-        window.app.showToast(`Product added to comparison (${list.length}/4).`, 'success');
+        window.app.showToast(`Product added to comparison (${list.length}/4). <a href="/compare?ids=${list.join(',')}" class="text-white text-decoration-underline ms-1 fw-bold">Compare now</a>`, 'primary');
       }
     });
 
