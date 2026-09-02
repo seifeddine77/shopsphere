@@ -90,7 +90,7 @@ async function buildFilter(query, { includeInactive = false } = {}) {
   // Dynamic attribute filtering (supports ?attr_color=Red or ?color=Red or ?attr_ram=16GB)
   const ignoredKeys = new Set([
     'q', 'category', 'brand', 'minPrice', 'maxPrice', 'minRating',
-    'inStock', 'isFeatured', 'sort', 'page', 'limit',
+    'inStock', 'isFeatured', 'sort', 'page', 'limit', 'includeInactive',
   ]);
 
   const dynamicConditions = [];
