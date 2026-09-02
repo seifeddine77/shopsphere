@@ -12,7 +12,14 @@
             <h1 class="h2 fw-bold mb-1"><%= t('compare.title', 'Compare Products') %></h1>
             <p class="text-secondary-emphasis mb-0"><%= t('compare.empty_desc', 'Side-by-side technical and price comparison') %></p>
         </div>
-        <a href="/products" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i><%= t('cart.continue_shopping', 'Back to catalog') %></a>
+        <div class="d-flex align-items-center gap-2">
+            <% if (products && products.length > 0) { %>
+                <button type="button" class="btn btn-outline-danger btn-sm js-clear-comparison">
+                    <i class="bi bi-trash3 me-1"></i>Clear all
+                </button>
+            <% } %>
+            <a href="/products" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i><%= t('cart.continue_shopping', 'Back to catalog') %></a>
+        </div>
     </div>
 
     <% if (!products || products.length === 0) { %>
@@ -20,7 +27,10 @@
             <i class="bi bi-sliders fs-1 text-muted mb-3 d-block"></i>
             <h3 class="h5 fw-bold"><%= t('compare.empty_title', 'No products selected for comparison') %></h3>
             <p class="text-secondary-emphasis max-w-md mx-auto mb-4"><%= t('compare.empty_desc', 'Select up to 4 products from the catalog to compare their specifications side by side.') %></p>
-            <a href="/products" class="btn btn-primary px-4"><%= t('compare.browse_catalog', 'Browse catalog') %></a>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="/products" class="btn btn-primary px-4"><%= t('compare.browse_catalog', 'Browse catalog') %></a>
+                <button type="button" class="btn btn-outline-secondary px-3 js-clear-comparison">Reset compare list</button>
+            </div>
         </div>
     <% } else { %>
         <div class="table-responsive bg-body-tertiary rounded-4 border shadow-sm p-3">
@@ -29,8 +39,9 @@
                     <tr>
                         <th style="width: 200px;" class="text-start bg-body text-secondary-emphasis fw-bold"><%= t('compare.feature', 'Product') %></th>
                         <% products.forEach((p) => { %>
-                            <th style="min-width: 240px;" class="bg-body">
+                            <th style="min-width: 240px;" class="bg-body" data-compare-product-id="<%= p._id %>">
                                 <div class="position-relative p-2">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-1 js-remove-compare-item" data-product-id="<%= p._id %>" aria-label="Remove <%= p.name %> from comparison"></button>
                                     <img src="<%= (p.images && p.images[0]) || '/images/placeholder.svg' %>" 
                                          alt="<%= p.name %>" class="img-fluid rounded mb-2" style="height: 140px; object-fit: contain;">
                                     <h6 class="fw-bold mb-1"><a href="/products/<%= p.slug %>" class="text-reset text-decoration-none"><%= p.name %></a></h6>
@@ -110,4 +121,59 @@
         </div>
     <% } %>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const COMPARE_KEY = 'shopsphere_compare_items';
+  const urlParams = new URLSearchParams(window.location.search);
+  const idsParam = urlParams.get('ids');
+
+  // If page loaded with rendered products, sync valid IDs back to localStorage
+  const renderedCards = document.querySelectorAll('[data-compare-product-id]');
+  if (renderedCards.length > 0) {
+    const validIds = Array.from(renderedCards).map((el) => el.dataset.compareProductId);
+    localStorage.setItem(COMPARE_KEY, JSON.stringify(validIds));
+    if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
+  } else if (idsParam) {
+    // Stale or invalid IDs in URL produced 0 products -> clear stale IDs
+    localStorage.removeItem(COMPARE_KEY);
+    if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
+  } else {
+    // No ids in query param, check if localStorage has comparison items and redirect
+    try {
+      const stored = JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
+      if (stored.length > 0) {
+        window.location.replace('/compare?ids=' + stored.join(','));
+      }
+    } catch (_e) {}
+  }
+
+  // Clear all button handler
+  document.querySelectorAll('.js-clear-comparison').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      localStorage.removeItem(COMPARE_KEY);
+      if (window.app && window.app.updateCompareBadge) window.app.updateCompareBadge();
+      window.location.href = '/compare';
+    });
+  });
+
+  // Remove single product from comparison table
+  document.querySelectorAll('.js-remove-compare-item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.productId;
+      try {
+        let stored = JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
+        stored = stored.filter((id) => id !== pid);
+        localStorage.setItem(COMPARE_KEY, JSON.stringify(stored));
+        if (stored.length > 0) {
+          window.location.href = '/compare?ids=' + stored.join(',');
+        } else {
+          window.location.href = '/compare';
+        }
+      } catch (_e) {}
+    });
+  });
+});
+</script>
+
 

@@ -370,24 +370,6 @@
       return;
     }
 
-    const addComp = event.target.closest('.js-add-to-compare');
-    if (addComp) {
-      const pid = addComp.dataset.productId;
-      try {
-        const stored = JSON.parse(localStorage.getItem('shopsphere_compare_ids') || '[]');
-        if (!stored.includes(pid)) {
-          if (stored.length >= 4) {
-            window.app.showToast('You can compare up to 4 products at a time.', 'info');
-            return;
-          }
-          stored.push(pid);
-          localStorage.setItem('shopsphere_compare_ids', JSON.stringify(stored));
-        }
-        window.app.showToast('Added to comparison! <a href="/compare" class="text-white text-decoration-underline ms-1 fw-bold">Compare now</a>', 'primary');
-      } catch (_e) {}
-      return;
-    }
-
     /* Cart drawer quantity adjustment */
     const drawerQty = event.target.closest('.js-drawer-qty');
     if (drawerQty) {
@@ -640,7 +622,7 @@
           btn.classList.remove('btn-primary', 'text-white');
           btn.classList.add('btn-outline-secondary');
         }
-      });
+      window.app.updateCompareBadge = updateCompareBadge;
     };
 
     const dockClearBtn = document.getElementById('dock-clear-btn');
