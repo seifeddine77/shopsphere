@@ -3,7 +3,7 @@
 <% const label = kind === 'categories' ? 'Category' : 'Brand';
    const endpoint = `/api/${kind}`; %>
 
-<h1 class="h3 fw-bold mb-4"><%= label %>s</h1>
+<h1 class="h3 fw-bold mb-4"><%= kind === 'categories' ? 'Categories' : 'Brands' %></h1>
 
 <div class="row g-4">
     <%# ------------------------------ Create form ------------------------------ %>
