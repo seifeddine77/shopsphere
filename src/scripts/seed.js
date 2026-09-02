@@ -149,6 +149,33 @@ async function upsertTaxonomy(Model, items, label) {
   }
 }
 
+const IMAGES_MAP = {
+  'Wireless Noise-Cancelling Headphones': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+  'Ultra-Slim Laptop 14" 16GB RAM': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&q=80',
+  'Smart Fitness Watch Pro': 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
+  'Bluetooth Speaker Waterproof': 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&q=80',
+  '4K Action Camera': 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&q=80',
+  'Fast Charging Power Bank 20000mAh': 'https://images.unsplash.com/photo-1609592424364-585a97576558?w=800&q=80',
+  'Classic Denim Jacket': 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&q=80',
+  'Slim Fit Chino Trousers': 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&q=80',
+  'Running Shoes CloudFoam': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
+  'Leather Crossbody Bag': 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80',
+  'Merino Wool Sweater': 'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=800&q=80',
+  'Polarized Sunglasses Aviator': 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80',
+  'Espresso Machine Deluxe': 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=800&q=80',
+  'Non-Stick Cookware Set (10 pcs)': 'https://images.unsplash.com/photo-1584990347449-3994d5483f98?w=800&q=80',
+  'Scandinavian Oak Coffee Table': 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=800&q=80',
+  'Robot Vacuum Cleaner': 'https://images.unsplash.com/photo-1589782182703-2aaa69037b5b?w=800&q=80',
+  'Memory Foam Pillow Set': 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=800&q=80',
+  'Adjustable Dumbbell Set 24kg': 'https://images.unsplash.com/photo-1586401100295-7a8096fd231a?w=800&q=80',
+  'Yoga Mat Premium Non-Slip': 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=800&q=80',
+  'Cycling Helmet Aero': 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&q=80',
+  'Camping Tent 4-Person Waterproof': 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=80',
+  'The Art of Clean Code (Hardcover)': 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=80',
+  'Cookbook: Mediterranean Kitchen': 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=800&q=80',
+  'Vitamin C Brightening Serum': 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&q=80',
+};
+
 async function seedProducts() {
   const categories = await Category.find();
   const brands = await Brand.find();
@@ -169,7 +196,7 @@ async function seedProducts() {
         warranty: `${(index % 3) + 1} year(s)`,
         origin: 'Imported',
       },
-      images: [`/images/products/ss-${String(index + 1).padStart(3, '0')}.svg`],
+      images: [IMAGES_MAP[name] || `/images/products/ss-${String(index + 1).padStart(3, '0')}.svg`],
       category: categories[categoryIndex]._id,
       brand: brands[brandIndex]._id,
       rating: Math.round((3.4 + ((index * 7) % 16) / 10) * 10) / 10, // 3.4 .. 4.9
